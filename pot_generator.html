@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendo Predict — POT Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ============================================================
+           CSS — Pendo Dark Theme (matching the dashboard)
+           ============================================================ */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #16161e;
+            --bg-card-elevated: #1e1e2a;
+            --pendo-pink: #FF4081;
+            --pendo-pink-soft: rgba(255, 64, 129, 0.15);
+            --accent-blue: #3B82F6;
+            --accent-green: #34D399;
+            --accent-amber: #FBBF24;
+            --accent-red: #F87171;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ---- Header ---- */
+        .header {
+            padding: 32px 40px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; align-items: center; gap: 16px;
+        }
+        .header .logo-icon {
+            width: 36px; height: 36px; background: var(--pendo-pink); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 18px; color: white;
+        }
+        .header h1 {
+            font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700;
+        }
+        .header h1 span { color: var(--pendo-pink); }
+
+        /* ---- Step Indicators ---- */
+        .steps-nav {
+            display: flex; gap: 0; padding: 0 40px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .step-tab {
+            padding: 16px 28px; font-size: 14px; font-weight: 500; color: var(--text-muted);
+            cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .step-tab:hover { color: var(--text-secondary); }
+        .step-tab.active { color: var(--pendo-pink); border-bottom-color: var(--pendo-pink); }
+        .step-tab.completed { color: var(--accent-green); }
+        .step-tab .step-num {
+            width: 24px; height: 24px; border-radius: 50%; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.06); color: var(--text-muted);
+        }
+        .step-tab.active .step-num { background: var(--pendo-pink); color: white; }
+        .step-tab.completed .step-num { background: var(--accent-green); color: white; }
+
+        /* ---- Main Content ---- */
+        .main { padding: 32px 40px; max-width: 1200px; }
+        .step-panel { display: none; }
+        .step-panel.active { display: block; }
+
+        /* ---- Cards ---- */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 28px; margin-bottom: 20px;
+        }
+        .card h2 {
+            font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .card p.desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+
+        /* ---- Form Controls ---- */
+        .file-drop {
+            border: 2px dashed var(--border-card); border-radius: var(--radius);
+            padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s;
+            position: relative; margin-bottom: 16px;
+        }
+        .file-drop:hover, .file-drop.dragover {
+            border-color: var(--pendo-pink); background: rgba(255,64,129,0.04);
+        }
+        .file-drop input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+        }
+        .file-drop i { font-size: 32px; color: var(--text-muted); margin-bottom: 12px; }
+        .file-drop .drop-label { font-size: 14px; color: var(--text-secondary); }
+        .file-drop .drop-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .file-drop.loaded { border-color: var(--accent-green); background: rgba(52,211,153,0.04); }
+        .file-drop.loaded i { color: var(--accent-green); }
+
+        textarea {
+            width: 100%; min-height: 200px; background: var(--bg-card-elevated);
+            border: 1px solid var(--border-card); border-radius: var(--radius-sm);
+            color: var(--text-primary); font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px; padding: 16px; resize: vertical; line-height: 1.5;
+        }
+        textarea:focus { outline: none; border-color: var(--pendo-pink); }
+
+        /* ---- Buttons ---- */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px;
+            border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+            cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .btn-primary { background: var(--pendo-pink); color: white; }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            background: rgba(255,255,255,0.06); color: var(--text-primary);
+            border: 1px solid var(--border-card);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+        .btn-row { display: flex; gap: 12px; margin-top: 24px; }
+
+        /* ---- Query Blocks ---- */
+        .query-block {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); margin-bottom: 16px; overflow: hidden;
+        }
+        .query-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px; border-bottom: 1px solid var(--border-subtle);
+            cursor: pointer;
+        }
+        .query-header h3 {
+            font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .query-header .query-num {
+            background: var(--pendo-pink-soft); color: var(--pendo-pink);
+            padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;
+        }
+        .query-body {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+        }
+        .query-body.open { max-height: 3000px; }
+        .query-body pre {
+            padding: 16px 20px; font-size: 13px; line-height: 1.6;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: var(--text-secondary); overflow-x: auto; white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            background: rgba(255,255,255,0.06); border: 1px solid var(--border-card);
+            color: var(--text-secondary); padding: 4px 12px; border-radius: 6px;
+            font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+        .copy-btn.copied { background: rgba(52,211,153,0.15); color: var(--accent-green); border-color: var(--accent-green); }
+
+        /* ---- CSV Upload Grid ---- */
+        .csv-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 12px; margin-bottom: 20px;
+        }
+        .csv-slot {
+            background: var(--bg-card-elevated); border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm); padding: 16px;
+            display: flex; align-items: center; gap: 12px; position: relative;
+        }
+        .csv-slot.loaded { border-color: var(--accent-green); }
+        .csv-slot .slot-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+            background: rgba(255,255,255,0.04); color: var(--text-muted);
+        }
+        .csv-slot.loaded .slot-icon { background: rgba(52,211,153,0.15); color: var(--accent-green); }
+        .csv-slot .slot-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .csv-slot .slot-info p { font-size: 11px; color: var(--text-muted); }
+        .csv-slot input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+        }
+
+        /* ---- Status Messages ---- */
+        .status {
+            padding: 12px 16px; border-radius: var(--radius-sm);
+            font-size: 13px; margin-bottom: 16px; display: none;
+        }
+        .status.success {
+            display: block; background: rgba(52,211,153,0.1);
+            border: 1px solid rgba(52,211,153,0.3); color: var(--accent-green);
+        }
+        .status.error {
+            display: block; background: rgba(248,113,113,0.1);
+            border: 1px solid rgba(248,113,113,0.3); color: var(--accent-red);
+        }
+        .status.info {
+            display: block; background: rgba(59,130,246,0.1);
+            border: 1px solid rgba(59,130,246,0.3); color: var(--accent-blue);
+        }
+
+        /* ---- Config Preview ---- */
+        .config-preview {
+            background: var(--bg-card-elevated); border-radius: var(--radius-sm);
+            padding: 16px 20px; margin-top: 16px; font-size: 13px;
+        }
+        .config-preview .config-row {
+            display: flex; gap: 12px; padding: 6px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .config-preview .config-row:last-child { border-bottom: none; }
+        .config-preview .config-label {
+            width: 200px; flex-shrink: 0; color: var(--text-muted); font-weight: 500;
+        }
+        .config-preview .config-value { color: var(--text-primary); font-family: monospace; }
+
+        /* ---- Footer ---- */
+        .footer {
+            padding: 24px 40px; border-top: 1px solid var(--border-subtle);
+            font-size: 12px; color: var(--text-muted); margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<div class="header">
+    <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+    <h1>Predict <span>POT Generator</span></h1>
+</div>
+
+<!-- ============================================================
+     STEP NAVIGATION
+     ============================================================ -->
+<div class="steps-nav">
+    <div class="step-tab active" onclick="goToStep(1)" id="tab-1">
+        <span class="step-num">1</span> Upload Config
+    </div>
+    <div class="step-tab" onclick="goToStep(2)" id="tab-2">
+        <span class="step-num">2</span> Generate Queries
+    </div>
+    <div class="step-tab" onclick="goToStep(3)" id="tab-3">
+        <span class="step-num">3</span> Upload Results &amp; Build Dashboard
+    </div>
+</div>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<div class="main">
+
+    <!-- ========== STEP 1: Upload Config ========== -->
+    <div class="step-panel active" id="panel-1">
+        <div class="card">
+            <h2><i class="fas fa-cog" style="color:var(--pendo-pink);margin-right:8px;"></i> Customer Configuration</h2>
+            <p class="desc">Upload the customer's filled-out <code>customer_config.json</code> file, or paste the JSON directly below.</p>
+
+            <div class="file-drop" id="config-drop">
+                <input type="file" accept=".json" onchange="handleConfigFile(event)">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <div class="drop-label">Drop <strong>customer_config.json</strong> here or click to browse</div>
+                <div class="drop-hint">.json file</div>
+            </div>
+
+            <div style="text-align:center;color:var(--text-muted);font-size:12px;font-weight:600;letter-spacing:0.1em;margin:12px 0;">OR PASTE JSON</div>
+
+            <textarea id="config-textarea" placeholder='{"customer":{"name":"Acme Corp",...},"sfdc":{...},"pendo":{...}}'></textarea>
+
+            <div id="config-status" class="status"></div>
+            <div id="config-preview-container" style="display:none;">
+                <h3 style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;margin:20px 0 12px;">
+                    <i class="fas fa-check-circle" style="color:var(--accent-green);margin-right:6px;"></i> Config Loaded
+                </h3>
+                <div class="config-preview" id="config-preview"></div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" id="btn-generate-queries" onclick="generateQueries()" disabled>
+                    <i class="fas fa-database"></i> Generate Queries <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== STEP 2: Generated Queries ========== -->
+    <div class="step-panel" id="panel-2">
+        <div class="card">
+            <h2><i class="fas fa-database" style="color:var(--pendo-pink);margin-right:8px;"></i> Generated Athena SQL Queries</h2>
+            <p class="desc">Copy each query and run it in the Predict query editor. Download the results as CSV for each one.</p>
+
+            <div class="btn-row" style="margin-top:0;margin-bottom:20px;">
+                <button class="btn btn-secondary btn-sm" onclick="expandAllQueries()"><i class="fas fa-expand"></i> Expand All</button>
+                <button class="btn btn-secondary btn-sm" onclick="collapseAllQueries()"><i class="fas fa-compress"></i> Collapse All</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyAllQueries()"><i class="fas fa-copy"></i> Copy All to Clipboard</button>
+            </div>
+
+            <div id="queries-container"></div>
+
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="goToStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="btn btn-primary" onclick="goToStep(3)"><i class="fas fa-upload"></i> Upload Results <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== STEP 3: Upload Results & Build ========== -->
+    <div class="step-panel" id="panel-3">
+        <div class="card">
+            <h2><i class="fas fa-upload" style="color:var(--pendo-pink);margin-right:8px;"></i> Upload Query Results</h2>
+            <p class="desc">Drop all 10 CSV files at once — we'll auto-detect which query each file belongs to based on its columns. Or upload individually below.</p>
+
+            <!-- Bulk drop zone -->
+            <div id="bulk-drop-zone" style="border:2px dashed var(--border-subtle); border-radius:12px; padding:40px 20px; text-align:center; margin-bottom:20px; cursor:pointer; transition: all 0.2s ease;">
+                <input type="file" id="bulk-file-input" accept=".csv" multiple style="display:none;" onchange="handleBulkUpload(event)">
+                <i class="fas fa-cloud-upload-alt" style="font-size:36px; color:var(--pendo-pink); margin-bottom:12px; display:block;"></i>
+                <div style="font-size:16px; font-weight:600; margin-bottom:6px;">Drop CSV files here or click to browse</div>
+                <div style="font-size:13px; color:var(--text-muted);">Select up to 10 files — they'll be auto-matched to queries</div>
+            </div>
+            <div id="bulk-results" style="display:none; margin-bottom:20px;"></div>
+
+            <details style="margin-bottom:20px;">
+                <summary style="cursor:pointer; font-size:14px; color:var(--text-muted); margin-bottom:8px;">
+                    <i class="fas fa-cog" style="margin-right:4px;"></i> Upload individually
+                </summary>
+                <div class="csv-grid" id="csv-grid" style="margin-top:12px;"></div>
+            </details>
+
+            <div id="csv-status" class="status"></div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-file-code" style="color:var(--pendo-pink);margin-right:8px;"></i> Dashboard Template</h2>
+            <p class="desc">Upload the <code>predict_pot_dashboard.html</code> template file. The generator will replace all placeholders with real data.</p>
+
+            <div class="file-drop" id="template-drop">
+                <input type="file" accept=".html,.htm" onchange="handleTemplateFile(event)">
+                <i class="fas fa-file-code"></i>
+                <div class="drop-label">Drop <strong>predict_pot_dashboard.html</strong> here</div>
+                <div class="drop-hint">.html file</div>
+            </div>
+            <div id="template-status" class="status"></div>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-magic" style="color:var(--pendo-pink);margin-right:8px;"></i> Generate Dashboard</h2>
+            <p class="desc">Once all CSVs and the template are uploaded, click below to generate the final dashboard.</p>
+
+            <div id="build-status" class="status"></div>
+
+            <div class="btn-row">
+                <button class="btn btn-secondary" onclick="goToStep(2)"><i class="fas fa-arrow-left"></i> Back to Queries</button>
+                <button class="btn btn-primary" id="btn-build" onclick="buildDashboard()" disabled>
+                    <i class="fas fa-rocket"></i> Build Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    Pendo Predict POT Generator &mdash; Internal Tool &mdash; Pendo Customer Engineering
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let customerConfig = null;       // Parsed JSON config
+let generatedQueries = [];       // Array of {name, sql} after placeholder substitution
+let csvData = {};                // {queryIndex: parsedCSVRows}
+let dashboardTemplate = null;    // Raw HTML string of dashboard template
+
+// ============================================================
+// QUERY TEMPLATES — Athena SQL with {{PLACEHOLDERS}}
+// [PURPOSE] Each template string matches query_templates.sql.
+//           Placeholders are replaced using the customer config.
+// ============================================================
+const QUERY_TEMPLATES = [
+    {
+        name: "Query 1: Account & Opportunity Landscape",
+        desc: "Dashboard fields: SFDC_TOTAL_ACCOUNTS, SFDC_TOTAL_OPPS, TOTAL_ACCOUNTS",
+        sql: `-- [PURPOSE] Count total SFDC accounts and opportunities
+SELECT
+    COUNT(DISTINCT a.id)                              AS sfdc_total_accounts,
+    COUNT(DISTINCT o.{{OPPORTUNITY_ID}})              AS sfdc_total_opps,
+    COUNT(DISTINCT CASE
+        WHEN o.{{IS_RENEWAL}}
+        THEN a.id
+    END)                                              AS accounts_with_renewals
+
+FROM {{ACCOUNT_TABLE}} AS a
+LEFT JOIN {{RENEWAL_TABLE}} AS o
+    ON CAST(o.{{ACCOUNT_ID}} AS VARCHAR)
+     = CAST(a.id AS VARCHAR)
+
+WHERE 1 = 1
+    {{EXCLUDE_CONDITIONS}}
+;`
+    },
+    {
+        name: "Query 2: Historical Churn Count & Time Window",
+        desc: "Dashboard fields: TOTAL_CHURNS, DATA_MONTHS, CLOSED_RENEWALS_PRIOR_YEAR",
+        sql: `-- [PURPOSE] Validate model readiness: enough churns and enough history
+SELECT
+    COUNT(DISTINCT CASE
+        WHEN {{IS_CHURN}}
+        THEN {{OPPORTUNITY_ID}}
+    END)                                              AS total_churns,
+
+    DATE_DIFF(
+        'month',
+        MIN(CAST({{CLOSE_DATE}} AS DATE)),
+        MAX(CAST({{CLOSE_DATE}} AS DATE))
+    )                                                 AS data_months,
+
+    COUNT(DISTINCT CASE
+        WHEN CAST({{CLOSE_DATE}} AS DATE)
+             >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+        THEN {{OPPORTUNITY_ID}}
+    END)                                              AS closed_renewals_prior_year
+
+FROM {{RENEWAL_TABLE}}
+WHERE {{IS_RENEWAL}}
+    AND {{IS_CLOSED}}
+    {{EXCLUDE_CONDITIONS}}
+;`
+    },
+    {
+        name: "Query 3: ARR Field Coverage",
+        desc: "Dashboard fields: ARR_POPULATED_RATE",
+        sql: `-- [PURPOSE] Check what % of renewal records have a non-null, non-zero ARR
+SELECT
+    ROUND(
+        COUNT(DISTINCT CASE
+            WHEN TRY_CAST({{ARR_FIELD}} AS DOUBLE) IS NOT NULL
+                AND TRY_CAST({{ARR_FIELD}} AS DOUBLE) > 0
+            THEN {{OPPORTUNITY_ID}}
+        END) * 100.0
+        / NULLIF(COUNT(DISTINCT {{OPPORTUNITY_ID}}), 0),
+        1
+    )                                                 AS arr_populated_rate
+
+FROM {{RENEWAL_TABLE}}
+WHERE {{IS_RENEWAL}}
+    AND {{IS_CLOSED}}
+    AND CAST({{CLOSE_DATE}} AS DATE)
+        >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+    {{EXCLUDE_CONDITIONS}}
+;`
+    },
+    {
+        name: "Query 4: Renewals & Churns by Month (Prior 12 Months)",
+        desc: "Chart data: renewals/churns count + ARR by month",
+        sql: `-- [PURPOSE] Monthly breakdown of renewal outcomes for EDA charts (USD)
+WITH fx_rates AS (
+    SELECT IsoCode, ConversionRate
+    FROM CurrencyType
+    WHERE IsActive = TRUE
+)
+
+SELECT
+    DATE_TRUNC('month', CAST(o.{{CLOSE_DATE}} AS DATE)) AS month,
+
+    COUNT(DISTINCT CASE
+        WHEN o.{{IS_RENEWAL_WON}}
+        THEN o.{{OPPORTUNITY_ID}}
+    END)                                              AS renewals_count,
+
+    COUNT(DISTINCT CASE
+        WHEN o.{{IS_CHURN}}
+        THEN o.{{OPPORTUNITY_ID}}
+    END)                                              AS churns_count,
+
+    COALESCE(SUM(CASE
+        WHEN o.{{IS_RENEWAL_WON}}
+        THEN TRY_CAST(o.{{ARR_FIELD}} AS DOUBLE) / fx.ConversionRate
+    END), 0)                                          AS renewals_arr,
+
+    COALESCE(SUM(CASE
+        WHEN o.{{IS_CHURN}}
+        THEN TRY_CAST(o.{{ARR_FIELD}} AS DOUBLE) / fx.ConversionRate
+    END), 0)                                          AS churns_arr
+
+FROM {{RENEWAL_TABLE}} AS o
+LEFT JOIN fx_rates AS fx
+    ON o.{{CURRENCY_ISO_CODE}} = fx.IsoCode
+WHERE o.{{IS_RENEWAL}}
+    AND o.{{IS_CLOSED}}
+    AND CAST(o.{{CLOSE_DATE}} AS DATE)
+        >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+    {{EXCLUDE_CONDITIONS}}
+GROUP BY 1
+ORDER BY 1
+;`
+    },
+    {
+        name: "Query 5: Churn Rate by Month",
+        desc: "Chart data: monthly churn rate trend line",
+        sql: `-- [PURPOSE] Monthly logo churn rate = churns / (churns + renewals)
+WITH monthly AS (
+    SELECT
+        DATE_TRUNC('month', CAST({{CLOSE_DATE}} AS DATE))
+                                                      AS month,
+        COUNT(DISTINCT CASE
+            WHEN {{IS_RENEWAL_WON}}
+            THEN {{OPPORTUNITY_ID}}
+        END)                                          AS renewals,
+
+        COUNT(DISTINCT CASE
+            WHEN {{IS_CHURN}}
+            THEN {{OPPORTUNITY_ID}}
+        END)                                          AS churns
+
+    FROM {{RENEWAL_TABLE}}
+    WHERE {{IS_RENEWAL}}
+        AND {{IS_CLOSED}}
+        AND CAST({{CLOSE_DATE}} AS DATE)
+            >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+        {{EXCLUDE_CONDITIONS}}
+    GROUP BY 1
+)
+
+SELECT
+    month,
+    renewals,
+    churns,
+    ROUND(
+        churns * 100.0 / NULLIF(churns + renewals, 0),
+        1
+    )                                                 AS churn_rate_pct
+
+FROM monthly
+ORDER BY month
+;`
+    },
+    {
+        name: "Query 6: Prior Year Summary Metrics",
+        desc: "Dashboard fields: PRIOR_YEAR_RENEWALS_COUNT, PRIOR_YEAR_CHURNS_COUNT, AVG_ARR, PRIOR_YEAR_CHURN_RATE",
+        sql: `-- [PURPOSE] Aggregate stats across full prior-year window for KPI cards + ROI (USD)
+WITH fx_rates AS (
+    SELECT IsoCode, ConversionRate
+    FROM CurrencyType
+    WHERE IsActive = TRUE
+)
+
+SELECT
+    COUNT(DISTINCT CASE
+        WHEN o.{{IS_RENEWAL_WON}}
+        THEN o.{{OPPORTUNITY_ID}}
+    END)                                              AS prior_year_renewals_count,
+
+    COUNT(DISTINCT CASE
+        WHEN o.{{IS_CHURN}}
+        THEN o.{{OPPORTUNITY_ID}}
+    END)                                              AS prior_year_churns_count,
+
+    ROUND(
+        AVG(TRY_CAST(o.{{ARR_FIELD}} AS DOUBLE) / fx.ConversionRate),
+        0
+    )                                                 AS avg_arr,
+
+    ROUND(
+        COUNT(DISTINCT CASE
+            WHEN o.{{IS_CHURN}}
+            THEN o.{{OPPORTUNITY_ID}}
+        END) * 100.0
+        / NULLIF(COUNT(DISTINCT o.{{OPPORTUNITY_ID}}), 0),
+        1
+    )                                                 AS prior_year_churn_rate
+
+FROM {{RENEWAL_TABLE}} AS o
+LEFT JOIN fx_rates AS fx
+    ON o.{{CURRENCY_ISO_CODE}} = fx.IsoCode
+WHERE o.{{IS_RENEWAL}}
+    AND o.{{IS_CLOSED}}
+    AND CAST(o.{{CLOSE_DATE}} AS DATE)
+        >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+    {{EXCLUDE_CONDITIONS}}
+;`
+    },
+    {
+        name: "Query 7: Upcoming Renewals (Next 12 Months)",
+        desc: "Chart data + UPCOMING_RENEWALS_DOLLAR",
+        sql: `-- [PURPOSE] Pipeline of open renewals by month (USD)
+WITH fx_rates AS (
+    SELECT IsoCode, ConversionRate
+    FROM CurrencyType
+    WHERE IsActive = TRUE
+)
+
+SELECT
+    DATE_TRUNC('month', CAST(o.{{RENEWAL_DATE}} AS DATE))
+                                                      AS month,
+    COUNT(DISTINCT o.{{OPPORTUNITY_ID}})              AS upcoming_count,
+    COALESCE(
+        SUM(TRY_CAST(o.{{ARR_FIELD}} AS DOUBLE) / fx.ConversionRate),
+        0
+    )                                                 AS upcoming_arr
+
+FROM {{RENEWAL_TABLE}} AS o
+LEFT JOIN fx_rates AS fx
+    ON o.{{CURRENCY_ISO_CODE}} = fx.IsoCode
+WHERE o.{{IS_RENEWAL}}
+    AND o.{{IS_OPEN_RENEWAL}}
+    AND CAST(o.{{RENEWAL_DATE}} AS DATE) >= DATE_TRUNC('month', CURRENT_DATE)
+    AND CAST(o.{{RENEWAL_DATE}} AS DATE)
+        < DATE_ADD('month', 12, DATE_TRUNC('month', CURRENT_DATE))
+    {{EXCLUDE_CONDITIONS}}
+GROUP BY 1
+ORDER BY 1
+;`
+    },
+    {
+        name: "Query 8: Business Case — Estimated Churn & ROI",
+        desc: "Dashboard fields: ESTIMATED_CHURN_*, ROI_CONSERVATIVE_*, ROI_BENCHMARK_*",
+        sql: `-- [PURPOSE] Combine prior-year churn rate with upcoming pipeline for ROI calc (USD)
+WITH fx_rates AS (
+    SELECT IsoCode, ConversionRate
+    FROM CurrencyType
+    WHERE IsActive = TRUE
+),
+
+prior_year AS (
+    SELECT
+        COUNT(DISTINCT CASE
+            WHEN o.{{IS_CHURN}}
+            THEN o.{{OPPORTUNITY_ID}}
+        END) * 1.0
+        / NULLIF(COUNT(DISTINCT o.{{OPPORTUNITY_ID}}), 0)
+                                                      AS churn_rate,
+
+        ROUND(
+            AVG(TRY_CAST(o.{{ARR_FIELD}} AS DOUBLE) / fx.ConversionRate),
+            0
+        )                                             AS avg_arr
+
+    FROM {{RENEWAL_TABLE}} AS o
+    LEFT JOIN fx_rates AS fx
+        ON o.{{CURRENCY_ISO_CODE}} = fx.IsoCode
+    WHERE o.{{IS_RENEWAL}}
+        AND o.{{IS_CLOSED}}
+        AND CAST(o.{{CLOSE_DATE}} AS DATE)
+            >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+        {{EXCLUDE_CONDITIONS}}
+),
+
+upcoming AS (
+    SELECT
+        COUNT(DISTINCT o.{{OPPORTUNITY_ID}})          AS upcoming_count,
+        COALESCE(
+            SUM(TRY_CAST(o.{{ARR_FIELD}} AS DOUBLE) / fx.ConversionRate),
+            0
+        )                                             AS upcoming_dollar
+
+    FROM {{RENEWAL_TABLE}} AS o
+    LEFT JOIN fx_rates AS fx
+        ON o.{{CURRENCY_ISO_CODE}} = fx.IsoCode
+    WHERE o.{{IS_RENEWAL}}
+        AND o.{{IS_OPEN_RENEWAL}}
+        AND CAST(o.{{RENEWAL_DATE}} AS DATE) >= DATE_TRUNC('month', CURRENT_DATE)
+        AND CAST(o.{{RENEWAL_DATE}} AS DATE)
+            < DATE_ADD('month', 12, DATE_TRUNC('month', CURRENT_DATE))
+        {{EXCLUDE_CONDITIONS}}
+)
+
+SELECT
+    ROUND(u.upcoming_count * p.churn_rate)            AS estimated_churn_accounts,
+    ROUND(u.upcoming_dollar * p.churn_rate)           AS estimated_churn_dollar,
+
+    ROUND(u.upcoming_count * 0.01)                    AS roi_conservative_renewals_saved,
+    ROUND(u.upcoming_count * 0.01 * p.avg_arr)       AS roi_conservative_annual,
+    ROUND(u.upcoming_count * 0.01 * p.avg_arr / 12)  AS roi_conservative_monthly,
+
+    ROUND(u.upcoming_count * 0.02)                    AS roi_benchmark_renewals_saved,
+    ROUND(u.upcoming_count * 0.02 * p.avg_arr)       AS roi_benchmark_annual,
+    ROUND(u.upcoming_count * 0.02 * p.avg_arr / 12)  AS roi_benchmark_monthly
+
+FROM prior_year AS p
+CROSS JOIN upcoming AS u
+;`
+    },
+    {
+        name: "Query 9: Pendo Account Match Rate",
+        desc: "Dashboard fields: PENDO_SFDC_MATCH_RATE, PENDO_SUBSCRIPTIONS",
+        sql: `-- [PURPOSE] Measure how well Pendo subscriptions map to SFDC accounts
+SELECT
+    COUNT(DISTINCT ps.id)     AS pendo_subscriptions,
+
+    ROUND(
+        COUNT(DISTINCT CASE
+            WHEN ps.salesforce__account__c IS NOT NULL
+            THEN ps.id
+        END) * 100.0
+        / NULLIF(
+            COUNT(DISTINCT ps.id),
+            0
+          ),
+        1
+    )                                                 AS pendo_sfdc_match_rate
+
+FROM pendo.AccountMetadata AS ps
+;`
+    },
+    {
+        name: "Query 10: Pendo Active Accounts & Event Volume",
+        desc: "Chart data + PENDO_ACTIVE_ACCOUNTS, PENDO_TOTAL_EVENTS, PENDO_TOTAL_MINUTES, PENDO_TOTAL_VISITORS",
+        sql: `-- [PURPOSE] Monthly breakdown of Pendo usage to show product data depth
+SELECT
+    DATE_TRUNC('month', CAST(Date AS DATE))
+                                                      AS month,
+    COUNT(DISTINCT AccountId)        AS active_accounts,
+    SUM(NumEvents) as total_events,
+    sum(NumMinutes) as total_minutes,
+    count(distinct VisitorId) as total_visitors
+FROM pendo.AllEvents
+WHERE CAST(date AS DATE)
+    >= DATE_ADD('month', -12, DATE_TRUNC('month', CURRENT_DATE))
+GROUP BY 1
+ORDER BY 1
+;`
+    }
+];
+
+
+// ============================================================
+// PLACEHOLDER → CONFIG MAPPING
+// [PURPOSE] Maps each {{PLACEHOLDER}} in the SQL templates to
+//           the corresponding path in the customer config JSON.
+// ============================================================
+function resolveConfigPlaceholders(config) {
+    const arrField = config.sfdc.fields.arr.transform || config.sfdc.fields.arr.field;
+
+    // [NOTE] EXCLUDE_CONDITIONS needs special handling — each condition
+    //        becomes an AND clause on its own line
+    const excludes = (config.sfdc.filters.exclude_conditions?.conditions || [])
+        .map(c => `AND ${c}`)
+        .join('\n    ');
+
+    return {
+        '{{OPPORTUNITY_ID}}':         config.sfdc.fields.opportunity_id,
+        '{{ACCOUNT_TABLE}}':          config.sfdc.objects.account_object,
+        '{{RENEWAL_TABLE}}':          config.sfdc.objects.renewal_object,
+        '{{ACCOUNT_ID}}':             config.sfdc.fields.account_id,
+        '{{CLOSE_DATE}}':             config.sfdc.fields.close_date.field,
+        '{{RENEWAL_DATE}}':           config.sfdc.fields.renewal_date.field,
+        '{{ARR_FIELD}}':              arrField,
+        '{{IS_RENEWAL}}':             config.sfdc.filters.is_renewal.condition,
+        '{{IS_CLOSED}}':              config.sfdc.filters.is_closed.condition,
+        '{{IS_CHURN}}':               config.sfdc.filters.is_churn.condition,
+        '{{IS_RENEWAL_WON}}':         config.sfdc.filters.is_renewal_won.condition,
+        '{{IS_OPEN_RENEWAL}}':        config.sfdc.filters.is_open_renewal.condition,
+        '{{EXCLUDE_CONDITIONS}}':     excludes,
+        '{{PENDO_ACCOUNT_ID_FIELD}}': config.pendo.account_mapping.pendo_account_id_field,
+        '{{SFDC_MATCH_FIELD}}':       config.pendo.account_mapping.sfdc_match_field,
+        '{{PENDO_SUBSCRIPTIONS_TABLE}}': config.pendo.tables?.subscriptions_table || 'pendo.subscriptions',
+        '{{PENDO_EVENTS_TABLE}}':     config.pendo.tables?.events_table || 'pendo.events',
+        '{{PENDO_EVENT_DATE}}':       config.pendo.columns?.event_date || 'event_date',
+        '{{PENDO_EVENT_ACCOUNT_ID}}': config.pendo.columns?.event_account_id || 'account_id',
+        '{{PENDO_EVENT_TYPE}}':       config.pendo.columns?.event_type || 'event_type',
+        '{{PENDO_EVENT_TYPE_PAGE}}':  config.pendo.columns?._event_type_values?.page || 'page',
+        '{{PENDO_EVENT_TYPE_TRACK}}': config.pendo.columns?._event_type_values?.track || 'track',
+        '{{PENDO_EVENT_TYPE_FEATURE}}': config.pendo.columns?._event_type_values?.feature || 'feature',
+        '{{CURRENCY_ISO_CODE}}':       config.sfdc.fields.currency_iso_code?.field || 'CurrencyIsoCode',
+    };
+}
+
+
+// ============================================================
+// STEP NAVIGATION
+// ============================================================
+function goToStep(step) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`panel-${step}`).classList.add('active');
+    document.getElementById(`tab-${step}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+// ============================================================
+// STEP 1: CONFIG HANDLING
+// ============================================================
+function handleConfigFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('config-textarea').value = e.target.result;
+        document.getElementById('config-drop').classList.add('loaded');
+        parseConfig(e.target.result);
+    };
+    reader.readAsText(file);
+}
+
+// [PURPOSE] Also parse when user pastes JSON directly
+document.addEventListener('DOMContentLoaded', () => {
+    const textarea = document.getElementById('config-textarea');
+    let debounce;
+    textarea.addEventListener('input', () => {
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            if (textarea.value.trim()) parseConfig(textarea.value);
+        }, 500);
+    });
+
+    // Initialize CSV upload slots and bulk drop zone
+    renderCsvGrid();
+    initBulkDrop();
+});
+
+function parseConfig(jsonStr) {
+    const statusEl = document.getElementById('config-status');
+    const previewEl = document.getElementById('config-preview-container');
+    const btnEl = document.getElementById('btn-generate-queries');
+
+    try {
+        const config = JSON.parse(jsonStr);
+
+        // [PURPOSE] Validate required fields exist
+        const required = [
+            ['customer.name', config.customer?.name],
+            ['sfdc.objects.renewal_object', config.sfdc?.objects?.renewal_object],
+            ['sfdc.fields.arr.field', config.sfdc?.fields?.arr?.field],
+            ['sfdc.filters.is_renewal.condition', config.sfdc?.filters?.is_renewal?.condition],
+            ['sfdc.filters.is_churn.condition', config.sfdc?.filters?.is_churn?.condition],
+        ];
+
+        const missing = required.filter(([_, v]) => !v).map(([k]) => k);
+        if (missing.length > 0) {
+            statusEl.className = 'status error';
+            statusEl.textContent = `Missing required fields: ${missing.join(', ')}`;
+            btnEl.disabled = true;
+            previewEl.style.display = 'none';
+            return;
+        }
+
+        customerConfig = config;
+        statusEl.className = 'status success';
+        statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Config parsed successfully for <strong>${config.customer.name}</strong>`;
+        btnEl.disabled = false;
+
+        // [PURPOSE] Render a human-readable preview of the key mappings
+        renderConfigPreview(config);
+        previewEl.style.display = 'block';
+
+    } catch (err) {
+        statusEl.className = 'status error';
+        statusEl.textContent = `JSON parse error: ${err.message}`;
+        btnEl.disabled = true;
+        previewEl.style.display = 'none';
+        customerConfig = null;
+    }
+}
+
+function renderConfigPreview(config) {
+    const el = document.getElementById('config-preview');
+    const arrField = config.sfdc.fields.arr.transform || config.sfdc.fields.arr.field;
+    const rows = [
+        ['Customer', config.customer.name],
+        ['CE', config.customer.ce_name],
+        ['Renewal Object', config.sfdc.objects.renewal_object],
+        ['ARR Field', arrField],
+        ['Close Date Field', config.sfdc.fields.close_date.field],
+        ['Is Renewal', config.sfdc.filters.is_renewal.condition],
+        ['Is Churn', config.sfdc.filters.is_churn.condition],
+        ['Is Won', config.sfdc.filters.is_renewal_won.condition],
+        ['Pendo Match Field', config.pendo.account_mapping.sfdc_match_field],
+    ];
+    el.innerHTML = rows.map(([label, value]) =>
+        `<div class="config-row">
+            <div class="config-label">${label}</div>
+            <div class="config-value">${value || '<em style="color:var(--text-muted)">not set</em>'}</div>
+        </div>`
+    ).join('');
+}
+
+
+// ============================================================
+// STEP 2: QUERY GENERATION
+// ============================================================
+function generateQueries() {
+    if (!customerConfig) return;
+
+    const placeholders = resolveConfigPlaceholders(customerConfig);
+    generatedQueries = QUERY_TEMPLATES.map(tpl => {
+        let sql = tpl.sql;
+        // [PURPOSE] Replace each placeholder with the customer's actual value
+        for (const [key, value] of Object.entries(placeholders)) {
+            sql = sql.replaceAll(key, value);
+        }
+        return { name: tpl.name, desc: tpl.desc, sql };
+    });
+
+    renderQueries();
+    document.getElementById('tab-1').classList.add('completed');
+    goToStep(2);
+}
+
+function renderQueries() {
+    const container = document.getElementById('queries-container');
+    container.innerHTML = generatedQueries.map((q, i) => `
+        <div class="query-block" id="qblock-${i}">
+            <div class="query-header" onclick="toggleQuery(${i})">
+                <h3><span class="query-num">${i + 1}</span> ${q.name}</h3>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <button class="copy-btn" onclick="event.stopPropagation();copyQuery(${i})" id="copybtn-${i}">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <i class="fas fa-chevron-down" style="color:var(--text-muted);font-size:12px;transition:transform 0.2s;" id="qchev-${i}"></i>
+                </div>
+            </div>
+            <div class="query-body" id="qbody-${i}">
+                <pre id="qpre-${i}">${escapeHtml(q.sql)}</pre>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleQuery(i) {
+    const body = document.getElementById(`qbody-${i}`);
+    const chev = document.getElementById(`qchev-${i}`);
+    body.classList.toggle('open');
+    chev.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0)';
+}
+
+function expandAllQueries() {
+    generatedQueries.forEach((_, i) => {
+        document.getElementById(`qbody-${i}`).classList.add('open');
+        document.getElementById(`qchev-${i}`).style.transform = 'rotate(180deg)';
+    });
+}
+
+function collapseAllQueries() {
+    generatedQueries.forEach((_, i) => {
+        document.getElementById(`qbody-${i}`).classList.remove('open');
+        document.getElementById(`qchev-${i}`).style.transform = 'rotate(0)';
+    });
+}
+
+function copyQuery(i) {
+    navigator.clipboard.writeText(generatedQueries[i].sql).then(() => {
+        const btn = document.getElementById(`copybtn-${i}`);
+        btn.classList.add('copied');
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+        setTimeout(() => {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        }, 2000);
+    });
+}
+
+function copyAllQueries() {
+    const allSql = generatedQueries.map((q, i) =>
+        `-- ============================================================\n-- ${q.name}\n-- ============================================================\n${q.sql}`
+    ).join('\n\n\n');
+    navigator.clipboard.writeText(allSql);
+}
+
+
+// ============================================================
+// STEP 3: CSV UPLOADS
+// ============================================================
+const QUERY_LABELS = [
+    "Q1: Account Landscape",
+    "Q2: Churn Count & Window",
+    "Q3: ARR Coverage",
+    "Q4: Renewals/Churns by Month",
+    "Q5: Churn Rate by Month",
+    "Q6: Prior Year Summary",
+    "Q7: Upcoming Renewals",
+    "Q8: Business Case / ROI",
+    "Q9: Pendo Match Rate",
+    "Q10: Pendo Usage by Month"
+];
+
+function renderCsvGrid() {
+    const grid = document.getElementById('csv-grid');
+    grid.innerHTML = QUERY_LABELS.map((label, i) => `
+        <div class="csv-slot" id="csv-slot-${i}">
+            <input type="file" accept=".csv" onchange="handleCsvUpload(event, ${i})">
+            <div class="slot-icon"><i class="fas fa-file-csv"></i></div>
+            <div class="slot-info">
+                <h4>${label}</h4>
+                <p id="csv-info-${i}">No file uploaded</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================================
+// BULK UPLOAD — Auto-detect query by column signature
+// ============================================================
+// [PURPOSE] Each query produces a CSV with unique column names.
+// Match the header row against known signatures to assign files.
+const QUERY_SIGNATURES = [
+    // Q1: Account Landscape
+    { index: 0, required: ['sfdc_total_accounts', 'sfdc_total_opps', 'accounts_with_renewals'] },
+    // Q2: Churn Count & Window
+    { index: 1, required: ['total_churns', 'data_months'] },
+    // Q3: ARR Coverage
+    { index: 2, required: ['arr_populated_rate'] },
+    // Q4: Renewals/Churns by Month
+    { index: 3, required: ['renewals_count', 'churns_count', 'renewals_arr', 'churns_arr'] },
+    // Q5: Churn Rate by Month
+    { index: 4, required: ['churn_rate_pct'] },
+    // Q6: Prior Year Summary
+    { index: 5, required: ['prior_year_renewals_count', 'prior_year_churns_count', 'avg_arr'] },
+    // Q7: Upcoming Renewals
+    { index: 6, required: ['upcoming_count', 'upcoming_arr'] },
+    // Q8: Business Case / ROI
+    { index: 7, required: ['estimated_churn_accounts', 'estimated_churn_dollar'] },
+    // Q9: Pendo Match Rate
+    { index: 8, required: ['pendo_subscriptions', 'pendo_sfdc_match_rate'] },
+    // Q10: Pendo Usage by Month
+    { index: 9, required: ['active_accounts', 'total_events', 'total_minutes', 'total_visitors'] },
+];
+
+function detectQueryIndex(headers) {
+    // [PURPOSE] Find which query signature best matches the CSV headers
+    const headerSet = new Set(headers.map(h => h.toLowerCase().trim()));
+    let bestMatch = -1;
+    let bestScore = 0;
+    for (const sig of QUERY_SIGNATURES) {
+        const matches = sig.required.filter(col => headerSet.has(col)).length;
+        if (matches === sig.required.length && matches > bestScore) {
+            bestScore = matches;
+            bestMatch = sig.index;
+        }
+    }
+    return bestMatch;
+}
+
+function handleBulkUpload(event) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+    processBulkFiles(files);
+}
+
+function processBulkFiles(files) {
+    const resultsDiv = document.getElementById('bulk-results');
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = '';
+
+    let matched = 0;
+    let unmatched = [];
+    let results = [];
+
+    let filesProcessed = 0;
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const parsed = parseCSV(e.target.result);
+            filesProcessed++;
+
+            if (parsed.length === 0) {
+                unmatched.push({ name: file.name, reason: 'Empty or unparseable' });
+            } else {
+                const headers = Object.keys(parsed[0]);
+                const queryIdx = detectQueryIndex(headers);
+
+                if (queryIdx === -1) {
+                    unmatched.push({ name: file.name, reason: `Columns not recognized: ${headers.join(', ')}` });
+                } else if (csvData[queryIdx] && csvData[queryIdx].length > 0) {
+                    // Already have data for this query — check if it's from this batch
+                    unmatched.push({ name: file.name, reason: `Duplicate — already matched to ${QUERY_LABELS[queryIdx]}` });
+                } else {
+                    csvData[queryIdx] = parsed;
+                    matched++;
+                    results.push({ name: file.name, queryIdx, rows: parsed.length });
+
+                    // Update individual slot too
+                    const slot = document.getElementById(`csv-slot-${queryIdx}`);
+                    const info = document.getElementById(`csv-info-${queryIdx}`);
+                    if (slot) slot.classList.add('loaded');
+                    if (info) info.textContent = `${parsed.length} row${parsed.length !== 1 ? 's' : ''} loaded (auto)`;
+                }
+            }
+
+            // All files processed — render results
+            if (filesProcessed === files.length) {
+                let html = '<div style="border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden;">';
+                html += '<div style="padding:12px 16px; background:var(--bg-section); font-weight:600; font-size:14px; border-bottom:1px solid var(--border-subtle);">';
+                html += `<i class="fas fa-check-circle" style="color:var(--accent-green); margin-right:6px;"></i> ${matched} of ${files.length} files matched`;
+                html += '</div>';
+
+                // Matched files
+                results.sort((a, b) => a.queryIdx - b.queryIdx);
+                results.forEach(r => {
+                    html += `<div style="padding:8px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); font-size:13px;">`;
+                    html += `<span><i class="fas fa-check" style="color:var(--accent-green); margin-right:8px;"></i><strong>${QUERY_LABELS[r.queryIdx]}</strong></span>`;
+                    html += `<span style="color:var(--text-muted);">${r.name} — ${r.rows} row${r.rows !== 1 ? 's' : ''}</span>`;
+                    html += `</div>`;
+                });
+
+                // Unmatched files
+                unmatched.forEach(u => {
+                    html += `<div style="padding:8px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); font-size:13px;">`;
+                    html += `<span><i class="fas fa-exclamation-triangle" style="color:var(--accent-amber); margin-right:8px;"></i><strong>${u.name}</strong></span>`;
+                    html += `<span style="color:var(--text-muted);">${u.reason}</span>`;
+                    html += `</div>`;
+                });
+
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+
+                checkBuildReady();
+            }
+        };
+        reader.readAsText(file);
+    });
+}
+
+// [PURPOSE] Wire up drag-and-drop on the bulk drop zone
+function initBulkDrop() {
+    const zone = document.getElementById('bulk-drop-zone');
+    if (!zone) return;
+
+    zone.addEventListener('click', () => document.getElementById('bulk-file-input').click());
+
+    zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--pendo-pink)';
+        zone.style.background = 'rgba(255,69,123,0.05)';
+    });
+
+    zone.addEventListener('dragleave', () => {
+        zone.style.borderColor = 'var(--border-subtle)';
+        zone.style.background = 'transparent';
+    });
+
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.style.borderColor = 'var(--border-subtle)';
+        zone.style.background = 'transparent';
+        const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.csv'));
+        if (files.length) processBulkFiles(files);
+    });
+}
+
+function handleCsvUpload(event, index) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const parsed = parseCSV(e.target.result);
+        csvData[index] = parsed;
+        const slot = document.getElementById(`csv-slot-${index}`);
+        const info = document.getElementById(`csv-info-${index}`);
+        slot.classList.add('loaded');
+        info.textContent = `${parsed.length} row${parsed.length !== 1 ? 's' : ''} loaded`;
+        checkBuildReady();
+    };
+    reader.readAsText(file);
+}
+
+// [PURPOSE] Simple CSV parser that handles quoted fields with commas/newlines
+function parseCSV(text) {
+    const lines = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === '"') {
+            if (inQuotes && text[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (ch === '\n' && !inQuotes) {
+            if (current.trim()) lines.push(current);
+            current = '';
+        } else if (ch === '\r' && !inQuotes) {
+            // skip carriage return
+        } else {
+            current += ch;
+        }
+    }
+    if (current.trim()) lines.push(current);
+
+    if (lines.length < 2) return [];
+
+    // [PURPOSE] Parse header to get column names, then map each row
+    const headers = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+        const values = splitCSVLine(lines[i]);
+        const row = {};
+        headers.forEach((h, idx) => {
+            row[h] = values[idx]?.trim() || '';
+        });
+        rows.push(row);
+    }
+    return rows;
+}
+
+function splitCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (ch === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+        } else {
+            current += ch;
+        }
+    }
+    result.push(current);
+    return result;
+}
+
+function handleTemplateFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        dashboardTemplate = e.target.result;
+        document.getElementById('template-drop').classList.add('loaded');
+        document.getElementById('template-status').className = 'status success';
+        document.getElementById('template-status').innerHTML =
+            `<i class="fas fa-check-circle"></i> Template loaded (${(file.size / 1024).toFixed(1)} KB)`;
+        checkBuildReady();
+    };
+    reader.readAsText(file);
+}
+
+function checkBuildReady() {
+    // [PURPOSE] Enable the Build button only when all 10 CSVs + template are loaded
+    const allCsvsLoaded = QUERY_LABELS.every((_, i) => csvData[i] && csvData[i].length > 0);
+    const templateLoaded = !!dashboardTemplate;
+    document.getElementById('btn-build').disabled = !(allCsvsLoaded && templateLoaded);
+
+    const loaded = Object.keys(csvData).filter(k => csvData[k] && csvData[k].length > 0).length;
+    const statusEl = document.getElementById('csv-status');
+    if (loaded > 0 && loaded < 10) {
+        statusEl.className = 'status info';
+        statusEl.innerHTML = `<i class="fas fa-info-circle"></i> ${loaded} of 10 CSVs uploaded`;
+    } else if (loaded === 10) {
+        statusEl.className = 'status success';
+        statusEl.innerHTML = `<i class="fas fa-check-circle"></i> All 10 CSVs uploaded`;
+    }
+}
+
+
+// ============================================================
+// STEP 3: BUILD DASHBOARD
+// [PURPOSE] Extract values from CSVs → replace dashboard
+//           placeholders → replace DATA object → download
+// ============================================================
+function buildDashboard() {
+    if (!customerConfig || !dashboardTemplate) return;
+
+    const statusEl = document.getElementById('build-status');
+
+    try {
+        let html = dashboardTemplate;
+
+        // ---- Extract scalar values from single-row queries ----
+        const q1 = csvData[0][0];  // Query 1
+        const q2 = csvData[1][0];  // Query 2
+        const q3 = csvData[2][0];  // Query 3
+        const q6 = csvData[5][0];  // Query 6
+        const q8 = csvData[7][0];  // Query 8
+        const q9 = csvData[8][0];  // Query 9
+
+        // ---- Extract time-series from multi-row queries ----
+        const q4 = csvData[3];     // Query 4: renewals/churns by month
+        const q5 = csvData[4];     // Query 5: churn rate by month
+        const q7 = csvData[6];     // Query 7: upcoming renewals
+        const q10 = csvData[9];    // Query 10: pendo events
+
+        // ---- Compute aggregates from time-series ----
+        const upcomingTotalArr = q7.reduce((s, r) => s + toNum(r.upcoming_arr), 0);
+        const pendoMaxAccounts = Math.max(...q10.map(r => toNum(r.active_accounts)));
+        const pendoTotalEvents = q10.reduce((s, r) => s + toNum(r.total_events), 0);
+        const pendoTotalMinutes = q10.reduce((s, r) => s + toNum(r.total_minutes), 0);
+        const pendoTotalVisitors = Math.max(...q10.map(r => toNum(r.total_visitors)));
+
+        // ---- Build the placeholder replacement map ----
+        // [NOTE] Dollar values get formatted as $X,XXX; counts as X,XXX; rates as-is
+        const replacements = {
+            '{{CUSTOMER_NAME}}':                    customerConfig.customer.name,
+            '{{ANALYSIS_DATE}}':                    customerConfig.customer.analysis_date || new Date().toISOString().slice(0, 10),
+            '{{CE_NAME}}':                          customerConfig.customer.ce_name,
+            '{{CE_EMAIL}}':                         customerConfig.customer.ce_email,
+            '{{SFDC_TOTAL_ACCOUNTS}}':              fmtNum(q1.sfdc_total_accounts),
+            '{{SFDC_TOTAL_OPPS}}':                  fmtNum(q1.sfdc_total_opps),
+            '{{TOTAL_ACCOUNTS}}':                   fmtNum(q1.accounts_with_renewals),
+            '{{TOTAL_CHURNS}}':                     fmtNum(q2.total_churns),
+            '{{DATA_MONTHS}}':                      q2.data_months,
+            '{{CLOSED_RENEWALS_PRIOR_YEAR}}':       fmtNum(q2.closed_renewals_prior_year),
+            '{{ARR_POPULATED_RATE}}':               q3.arr_populated_rate,
+            '{{PRIOR_YEAR_RENEWALS_COUNT}}':        fmtNum(q6.prior_year_renewals_count),
+            '{{PRIOR_YEAR_CHURNS_COUNT}}':          fmtNum(q6.prior_year_churns_count),
+            '{{AVG_ARR}}':                          fmtDollar(q6.avg_arr),
+            '{{PRIOR_YEAR_CHURN_RATE}}':            q6.prior_year_churn_rate,
+            '{{UPCOMING_RENEWALS_DOLLAR}}':         fmtDollar(upcomingTotalArr),
+            '{{ESTIMATED_CHURN_ACCOUNTS}}':         fmtNum(q8.estimated_churn_accounts),
+            '{{ESTIMATED_CHURN_DOLLAR}}':           fmtDollar(q8.estimated_churn_dollar),
+            '{{ROI_CONSERVATIVE_RENEWALS_SAVED}}':  fmtNum(q8.roi_conservative_renewals_saved),
+            '{{ROI_CONSERVATIVE_ANNUAL}}':          fmtDollar(q8.roi_conservative_annual),
+            '{{ROI_CONSERVATIVE_MONTHLY}}':         fmtDollar(q8.roi_conservative_monthly),
+            '{{ROI_BENCHMARK_RENEWALS_SAVED}}':     fmtNum(q8.roi_benchmark_renewals_saved),
+            '{{ROI_BENCHMARK_ANNUAL}}':             fmtDollar(q8.roi_benchmark_annual),
+            '{{ROI_BENCHMARK_MONTHLY}}':            fmtDollar(q8.roi_benchmark_monthly),
+            '{{PENDO_SUBSCRIPTIONS}}':              fmtNum(q9.pendo_subscriptions),
+            '{{PENDO_SFDC_MATCH_RATE}}':            q9.pendo_sfdc_match_rate,
+            '{{PENDO_ACTIVE_ACCOUNTS}}':            fmtNum(pendoMaxAccounts),
+            '{{PENDO_TOTAL_EVENTS}}':               fmtNum(pendoTotalEvents),
+            '{{PENDO_TOTAL_MINUTES}}':              fmtNum(pendoTotalMinutes),
+            '{{PENDO_TOTAL_VISITORS}}':             fmtNum(pendoTotalVisitors),
+        };
+
+        // [PURPOSE] Replace all {{PLACEHOLDER}} tokens in the HTML
+        for (const [key, value] of Object.entries(replacements)) {
+            html = html.replaceAll(key, value);
+        }
+
+        // ---- Build the DATA object for charts ----
+        // [PURPOSE] Replace the entire `const DATA = {...};` block with real data
+        const dataObj = {
+            months:                 q4.map(r => fmtMonthLabel(r.month)),
+            renewals_count:         q4.map(r => toNum(r.renewals_count)),
+            churns_count:           q4.map(r => toNum(r.churns_count)),
+            renewals_arr:           q4.map(r => Math.round(toNum(r.renewals_arr) / 1000)),
+            churns_arr:             q4.map(r => Math.round(toNum(r.churns_arr) / 1000)),
+            churn_rate:             q5.map(r => toNum(r.churn_rate_pct)),
+            upcoming_months:        q7.map(r => fmtMonthLabel(r.month)),
+            upcoming_count:         q7.map(r => toNum(r.upcoming_count)),
+            upcoming_arr:           q7.map(r => Math.round(toNum(r.upcoming_arr) / 1000)),
+            pendo_active_accounts:  q10.map(r => toNum(r.active_accounts)),
+            pendo_total_events:     q10.map(r => Math.round(toNum(r.total_events) / 1000)),
+            pendo_total_minutes:    q10.map(r => Math.round(toNum(r.total_minutes))),
+            pendo_total_visitors:   q10.map(r => toNum(r.total_visitors)),
+        };
+
+        // [NOTE] Use regex to find and replace the DATA object declaration
+        const dataRegex = /const DATA\s*=\s*\{[\s\S]*?\};/;
+        const dataReplacement = `const DATA = ${JSON.stringify(dataObj, null, 4)};`;
+        html = html.replace(dataRegex, dataReplacement);
+
+        // ---- Download the generated dashboard ----
+        const customerSlug = customerConfig.customer.name
+            .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/_+$/, '');
+        const filename = `predict_pot_${customerSlug}.html`;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        statusEl.className = 'status success';
+        statusEl.innerHTML = `<i class="fas fa-check-circle"></i> Dashboard generated! Downloading as <strong>${filename}</strong>`;
+
+        document.getElementById('tab-3').classList.add('completed');
+
+    } catch (err) {
+        statusEl.className = 'status error';
+        statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Build error: ${err.message}. Check that all CSVs have the expected column names.`;
+        console.error('Build error:', err);
+    }
+}
+
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+
+// [PURPOSE] Safely convert string value to number (handles nulls, empty, commas)
+function toNum(val) {
+    if (val === null || val === undefined || val === '') return 0;
+    const cleaned = String(val).replace(/[,$\s]/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+}
+
+// [PURPOSE] Format number with commas (1234567 → "1,234,567")
+function fmtNum(val) {
+    return Math.round(toNum(val)).toLocaleString('en-US');
+}
+
+// [PURPOSE] Format as dollar amount ($1,234,567)
+function fmtDollar(val) {
+    return '$' + Math.round(toNum(val)).toLocaleString('en-US');
+}
+
+// [PURPOSE] Convert "2026-04-01" or "2026-04-01T00:00:00" to "Apr 26"
+function fmtMonthLabel(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`;
+}
+
+// [PURPOSE] Escape HTML entities for safe display in <pre> tags
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+</script>
+
+</body>
+</html>

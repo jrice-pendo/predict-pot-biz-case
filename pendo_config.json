@@ -1,0 +1,160 @@
+{
+  "_README": "Pendo Predict POT — Pendo. Auto-generated from intake form on 2026-04-15. See review notes at bottom.",
+
+  "customer": {
+    "name": "Pendo",
+    "contact": "Jonathan Rice, Customer Engineer",
+    "ce_name": "Jonathan Rice",
+    "ce_email": "jonathan.rice@pendo.io",
+    "analysis_date": "2026-04-15",
+    "sql_dialect": "athena"
+  },
+
+  "sfdc": {
+    "objects": {
+      "renewal_object": "Opportunity",
+      "account_object": "Account"
+    },
+
+    "fields": {
+      "account_id": "AccountId",
+      "account_name": "Account.Name",
+      "opportunity_id": "Id",
+
+      "arr": {
+        "field": "Amount",
+        "object": "Opportunity",
+        "transform": null,
+        "_source": "Q6: Customer said 'Amount'. No transform needed — represents annual value directly. Q13: Amount is in local currency; USD conversion via CurrencyIsoCode required.",
+        "_confidence": "HIGH — direct from intake form 2026-04-15"
+      },
+
+      "close_date": {
+        "field": "CloseDate"
+      },
+
+      "renewal_date": {
+        "field": "CloseDate",
+        "_source": "Q7: Customer said 'Close Date' for both closed and open renewals"
+      },
+
+      "stage": {
+        "field": "StageName"
+      },
+
+      "currency_iso_code": {
+        "field": "CurrencyIsoCode",
+        "_doc": "Multi-currency org — each Opportunity has a CurrencyIsoCode. All $ amounts are converted to USD in queries."
+      }
+    },
+
+    "filters": {
+      "is_renewal": {
+        "condition": "Type = 'Renewals'",
+        "_source": "Q2: Customer said 'Type = Renewals'.",
+        "_confidence": "HIGH — direct from intake form 2026-04-15"
+      },
+
+      "is_closed": {
+        "condition": "IsClosed = TRUE"
+      },
+
+      "is_churn": {
+        "condition": "StageName = 'Closed/Lost'",
+        "_source": "Q3: Customer said 'Stage = Closed/Lost'. Forward slash is part of the actual StageName value.",
+        "_confidence": "HIGH — CE-confirmed 2026-04-15"
+      },
+
+      "is_renewal_won": {
+        "condition": "StageName = 'Stage 6: Closed/Won'",
+        "_source": "Q4: Customer said 'Stage = Stage 6: Closed/Won'. 'Stage 6:' prefix is part of the actual StageName value.",
+        "_confidence": "HIGH — CE-confirmed 2026-04-15"
+      },
+
+      "is_open_renewal": {
+        "condition": "IsClosed = FALSE",
+        "_source": "Q5: Customer said 'Stage not in (Closed/Lost, Stage 6: Closed/Won)' — mapped to IsClosed = FALSE as the standard equivalent.",
+        "_confidence": "HIGH — logically equivalent to customer's answer. Standard mapping."
+      },
+
+      "exclude_conditions": {
+        "conditions": [
+          "Amount > 0"
+        ],
+        "_source": "Q9: Customer said 'No' exclusions needed. Q10: Customer confirmed $0 and missing amounts should be excluded."
+      }
+    },
+
+    "time_windows": {
+      "historical_months": 12,
+      "upcoming_months": 12
+    }
+  },
+
+  "pendo": {
+    "account_mapping": {
+      "pendo_account_id_field": "accountId",
+      "sfdc_match_field": "Contract.Pendo_Subscription__c",
+      "_source": "Q8: Customer said 'Salesforce Contracts link to Renewal Opportunities. Contracts contain a Pendo Subscription object that joins directly to Pendo data.'",
+      "_confidence": "HIGH — CE-confirmed 2026-04-15"
+    },
+
+    "tables": {
+      "_doc": "CE-provided: check the Predict query editor schema browser",
+      "subscriptions_table": "pendo.subscriptions",
+      "events_table": "pendo.events"
+    },
+
+    "columns": {
+      "event_date": "event_date",
+      "event_account_id": "account_id",
+      "event_type": "event_type",
+      "_event_type_values": {
+        "page": "page",
+        "track": "track",
+        "feature": "feature"
+      }
+    },
+
+    "data_source": {
+      "type": "pendo_api"
+    }
+  },
+
+  "dashboard_overrides": {
+    "predict_churn_reduction_conservative_pp": 1.0,
+    "predict_churn_reduction_benchmark_pp": 2.0
+  },
+
+  "_review": {
+    "_generated": "2026-04-15 by auto-config workflow (regenerated from current intake form)",
+    "_intake_doc_id": "1idfrBRue69ZFtxkSCThF4SxeOdHxliyTkQdK5cE1eT4",
+
+    "high_confidence": [
+      "Q1 → renewal_object: Opportunity (direct mapping)",
+      "Q2 → is_renewal: Type = 'Renewals' (direct from form)",
+      "Q3 → is_churn: StageName = 'Closed/Lost' (forward slash confirmed by CE)",
+      "Q4 → is_renewal_won: StageName = 'Stage 6: Closed/Won' ('Stage 6:' prefix confirmed by CE)",
+      "Q5 → is_open_renewal: IsClosed = FALSE (logically equivalent to customer's answer)",
+      "Q6 → arr: Amount (direct from form — represents annual value, no transform needed)",
+      "Q7 → close_date: CloseDate, renewal_date: CloseDate (same field for both — direct mapping)",
+      "Q8 → pendo mapping: Contract.Pendo_Subscription__c (CE-confirmed join path)",
+      "Q9 → No exclusion patterns needed (customer said 'No')",
+      "Q10 → exclude: Amount > 0 (customer confirmed $0/missing records exist and should be excluded)",
+      "Q11 → Since 2015 — ~11 years of history, far exceeds 12-month minimum ✓",
+      "Q12 → 200+ churns confirmed ✓"
+    ],
+
+    "needs_review": [],
+
+    "warnings": [
+      "Q13 NOTE: Amount is in local currency. Must use CurrencyIsoCode + SFDC CurrencyType table to convert all $ amounts to USD. fx_rates CTE pattern applied across all dollar queries."
+    ],
+
+    "ce_action_items": [
+      "1. Fill in pendo.tables and pendo.columns after checking the Predict query editor schema."
+    ],
+
+    "ce_confirmed": "2026-04-15 — CE (Jonathan Rice) confirmed all field mappings. Stage names include 'Stage 6:' prefix and forward slashes. Amount is the correct ARR field. Contract-based Pendo mapping via Pendo Subscription object confirmed."
+  }
+}

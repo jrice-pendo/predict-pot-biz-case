@@ -1,0 +1,183 @@
+{
+  "_README": "Pendo Predict POT — Customer Configuration Template. Fill this out per customer to map their SFDC/Pendo schema to the dashboard queries. See query_templates.sql for how each field is used.",
+
+  "customer": {
+    "name": "Acme Corp",
+    "ce_name": "Jonathan Rice",
+    "ce_email": "jonathan.rice@pendo.io",
+    "analysis_date": "2026-04-14",
+    "sql_dialect": "athena"
+  },
+
+  "sfdc": {
+    "_doc": "Maps the customer's Salesforce schema to the concepts the POT queries need.",
+
+    "objects": {
+      "_doc": "Which SFDC objects hold the data we need. Most customers use Opportunity, but some use a custom Renewal object.",
+      "renewal_object": "Opportunity",
+      "account_object": "Account"
+    },
+
+    "fields": {
+      "_doc": "Column/field names in the customer's SFDC for each concept. These get substituted directly into queries.",
+
+      "account_id": "AccountId",
+      "account_name": "Account.Name",
+      "opportunity_id": "Id",
+
+      "arr": {
+        "_doc": "The field that holds annual recurring revenue. Could live on Account or Opportunity.",
+        "field": "Amount",
+        "object": "Opportunity",
+        "transform": null,
+        "_transform_examples": [
+          "null — use field directly",
+          "Amount / Contract_Term_Months__c * 12 — calculate ARR from total and term",
+          "Account.ARR__c — field lives on Account, not Opportunity"
+        ]
+      },
+
+      "close_date": {
+        "_doc": "The date the renewal/churn was decided. Used for time-series grouping.",
+        "field": "CloseDate"
+      },
+
+      "renewal_date": {
+        "_doc": "The upcoming renewal date for open renewals. May be the same as close_date or a custom field.",
+        "field": "CloseDate"
+      },
+
+      "stage": {
+        "_doc": "The field that indicates the outcome of the opportunity.",
+        "field": "StageName"
+      },
+
+      "currency_iso_code": {
+        "_doc": "The currency code field on each Opportunity. Used to convert all $ amounts to USD via the SFDC CurrencyType table. Only relevant for multi-currency orgs.",
+        "field": "CurrencyIsoCode"
+      }
+    },
+
+    "filters": {
+      "_doc": "Conditions that identify renewals vs. new business, and churns vs. successful renewals.",
+
+      "is_renewal": {
+        "_doc": "SQL condition that identifies renewal records (as opposed to new biz, upsell, etc.)",
+        "condition": "RecordType.Name = 'Renewal'",
+        "_examples": [
+          "RecordType.Name = 'Renewal'",
+          "Type = 'Renewal'",
+          "Opportunity_Type__c IN ('Renewal', 'Renewal - Auto')",
+          "RecordTypeId = '012XXXXXXXXXXXX'"
+        ]
+      },
+
+      "is_closed": {
+        "_doc": "SQL condition for closed (decided) opportunities — both wins and losses.",
+        "condition": "IsClosed = TRUE",
+        "_examples": [
+          "IsClosed = TRUE",
+          "StageName LIKE 'Closed%'",
+          "Stage_Category__c IN ('Won', 'Lost')"
+        ]
+      },
+
+      "is_churn": {
+        "_doc": "SQL condition that specifically identifies a churn/loss within closed renewals.",
+        "condition": "StageName = 'Closed Lost'",
+        "_examples": [
+          "StageName = 'Closed Lost'",
+          "StageName IN ('Closed Lost', 'Churned', 'Non-Renewal')",
+          "Churn__c = TRUE",
+          "IsWon = FALSE AND IsClosed = TRUE",
+          "Renewal_Outcome__c = 'Churn'"
+        ]
+      },
+
+      "is_renewal_won": {
+        "_doc": "SQL condition that identifies a successful renewal (not churned).",
+        "condition": "StageName = 'Closed Won'",
+        "_examples": [
+          "StageName = 'Closed Won'",
+          "IsWon = TRUE",
+          "Renewal_Outcome__c IN ('Renewed', 'Expanded')"
+        ]
+      },
+
+      "is_open_renewal": {
+        "_doc": "SQL condition for upcoming/open renewals (not yet decided).",
+        "condition": "IsClosed = FALSE",
+        "_examples": [
+          "IsClosed = FALSE",
+          "StageName NOT LIKE 'Closed%'",
+          "Stage_Category__c = 'Open'"
+        ]
+      },
+
+      "exclude_conditions": {
+        "_doc": "Optional SQL conditions to exclude junk data (test accounts, $0 opps, etc.)",
+        "conditions": [
+          "Account.Name NOT LIKE '%test%'",
+          "Amount > 0"
+        ]
+      }
+    },
+
+    "time_windows": {
+      "_doc": "How far back to look for historical data and how far forward for upcoming renewals.",
+      "historical_months": 12,
+      "upcoming_months": 12
+    }
+  },
+
+  "pendo": {
+    "_doc": "Maps Pendo data to SFDC accounts. Table and column names vary by query editor instance — CE fills these in, not the customer.",
+
+    "account_mapping": {
+      "_doc": "How Pendo subscriptions/accounts map to SFDC Account IDs.",
+      "pendo_account_id_field": "accountId",
+      "sfdc_match_field": "Account.Pendo_Account_ID__c",
+      "_match_examples": [
+        "Account.Pendo_Account_ID__c — custom field on Account holding Pendo ID",
+        "Account.Id — Pendo uses the SFDC Account ID directly",
+        "Account.External_ID__c — shared external identifier"
+      ]
+    },
+
+    "tables": {
+      "_doc": "CE-provided: table names available in the Predict query editor. Check the editor's schema browser for exact names.",
+      "subscriptions_table": "pendo.subscriptions",
+      "events_table": "pendo.events",
+      "_examples": [
+        "pendo.subscriptions / pendo.events — common default",
+        "pendo_data.subscriptions / pendo_data.events — namespaced variant",
+        "subscriptions / page_events — no schema prefix"
+      ]
+    },
+
+    "columns": {
+      "_doc": "CE-provided: column names in the Pendo tables. Check the editor's schema browser for exact names.",
+      "event_date": "event_date",
+      "event_account_id": "account_id",
+      "event_type": "event_type",
+      "_event_type_values": {
+        "_doc": "The string values in the event_type column. Defaults shown; override if the schema uses different labels.",
+        "page": "page",
+        "track": "track",
+        "feature": "feature"
+      }
+    },
+
+    "data_source": {
+      "_doc": "Where Pendo data is accessed from.",
+      "type": "pendo_api",
+      "_type_options": ["pendo_api", "snowflake_sync", "bigquery_sync", "redshift_sync"]
+    }
+  },
+
+  "dashboard_overrides": {
+    "_doc": "Optional manual overrides for dashboard values that can't be queried automatically.",
+    "predict_churn_reduction_conservative_pp": 1.0,
+    "predict_churn_reduction_benchmark_pp": 2.0
+  }
+}

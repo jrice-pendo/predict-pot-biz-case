@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendo Predict — Proof of Technology</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+    <style>
+        /* ============================================================
+           CSS CUSTOM PROPERTIES — Pendo Dark Theme
+           ============================================================ */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #16161e;
+            --bg-card-elevated: #1e1e2a;
+            --bg-section: #111118;
+            --pendo-pink: #FF4081;
+            --pendo-pink-soft: rgba(255, 64, 129, 0.15);
+            --pendo-pink-glow: rgba(255, 64, 129, 0.3);
+            --accent-blue: #3B82F6;
+            --accent-green: #34D399;
+            --accent-amber: #FBBF24;
+            --accent-red: #F87171;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --gap: 20px;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ============================================================
+           NAVIGATION
+           ============================================================ */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 40px;
+            display: flex; align-items: center; height: 56px; gap: 32px;
+        }
+
+        .nav-logo {
+            font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px; white-space: nowrap;
+        }
+
+        .nav-logo .logo-icon {
+            width: 24px; height: 24px; background: var(--pendo-pink); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+
+        .nav-links { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+        .nav-links::-webkit-scrollbar { display: none; }
+
+        .nav-link {
+            font-size: 13px; font-weight: 500; color: var(--text-muted);
+            text-decoration: none; padding: 6px 14px; border-radius: 20px;
+            transition: all 0.2s ease; white-space: nowrap; cursor: pointer;
+        }
+
+        .nav-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+        .nav-link.active { color: var(--pendo-pink); background: var(--pendo-pink-soft); }
+
+        .nav-customer {
+            margin-left: auto; font-size: 12px; font-weight: 600;
+            color: var(--text-secondary); letter-spacing: 0.05em;
+            text-transform: uppercase; white-space: nowrap;
+        }
+
+        /* ============================================================
+           SECTION LAYOUT
+           ============================================================ */
+        .section {
+            padding: 40px 40px 20px;
+            position: relative;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .section:first-of-type { padding-top: 96px; }
+
+        .section-inner { max-width: 1280px; margin: 0 auto; }
+
+        .section-header { margin-bottom: 40px; }
+
+        .section-label {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--pendo-pink); margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 700;
+            color: var(--text-primary); line-height: 1.2; margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 16px; color: var(--text-secondary); max-width: 640px;
+        }
+
+        .gradient-line {
+            width: 80px; height: 4px;
+            background: linear-gradient(90deg, var(--pendo-pink), var(--accent-blue));
+            border-radius: 2px; margin: 16px 0;
+        }
+
+        /* ============================================================
+           COLLAPSIBLE SECTIONS
+           ============================================================ */
+        .collapsible-trigger {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 32px 0 16px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .collapsible-trigger:hover .chevron {
+            color: var(--pendo-pink);
+        }
+
+        .collapsible-trigger .trigger-left {
+            flex: 1;
+        }
+
+        .collapsible-trigger .section-header {
+            margin-bottom: 0;
+        }
+
+        .chevron {
+            font-size: 24px;
+            color: var(--text-muted);
+            transition: transform 0.3s ease, color 0.2s ease;
+            flex-shrink: 0;
+            margin-left: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .collapsible-trigger:hover .chevron {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .collapsible-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.3s ease,
+                        padding 0.3s ease;
+            opacity: 0;
+            padding-bottom: 0;
+        }
+
+        .collapsible-body.open {
+            max-height: 5000px;
+            opacity: 1;
+            padding-bottom: 40px;
+        }
+
+        .section.collapsed .chevron {
+            transform: rotate(0deg);
+        }
+
+        .section:not(.collapsed) .chevron {
+            transform: rotate(180deg);
+        }
+
+        /* Section summary shown when collapsed */
+        .section-summary {
+            display: none;
+            padding: 0 0 24px;
+            gap: 24px;
+        }
+
+        .section.collapsed .section-summary {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .summary-chip .chip-value {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary);
+        }
+
+        .summary-chip .chip-value.pink { color: var(--pendo-pink); }
+        .summary-chip .chip-value.green { color: var(--accent-green); }
+        .summary-chip .chip-value.red { color: var(--accent-red); }
+
+        /* ============================================================
+           CARDS
+           ============================================================ */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 24px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--gap); margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 24px;
+        }
+
+        .kpi-label {
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 700;
+            color: var(--text-primary); margin-bottom: 4px;
+        }
+
+        .kpi-value.pink { color: var(--pendo-pink); }
+        .kpi-value.green { color: var(--accent-green); }
+        .kpi-value.amber { color: var(--accent-amber); }
+        .kpi-value.red { color: var(--accent-red); }
+
+        .kpi-note { font-size: 13px; color: var(--text-muted); }
+
+        /* ============================================================
+           DATA READINESS — CHECKLIST CARDS
+           ============================================================ */
+        .readiness-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--gap); margin-bottom: 32px;
+        }
+
+        .readiness-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 24px;
+            display: flex; gap: 16px; align-items: flex-start;
+        }
+
+        .readiness-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+
+        .readiness-icon.pass { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+        .readiness-icon.warn { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); }
+        .readiness-icon.fail { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+
+        .readiness-content h4 { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .readiness-content .readiness-value { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .readiness-content p { font-size: 13px; color: var(--text-muted); }
+
+        .readiness-threshold {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            padding: 2px 8px; border-radius: 10px; margin-top: 6px;
+        }
+
+        .readiness-threshold.pass { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
+        .readiness-threshold.warn { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); }
+        .readiness-threshold.fail { background: rgba(248, 113, 113, 0.15); color: var(--accent-red); }
+
+        /* ============================================================
+           CHART CONTAINERS
+           ============================================================ */
+        .chart-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: var(--gap); margin-bottom: 32px;
+        }
+
+        .chart-grid.single { grid-template-columns: 1fr; }
+
+        .chart-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 24px;
+        }
+
+        .chart-card h3 { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .chart-card .chart-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+        .chart-card canvas { max-height: 300px; }
+
+        /* ============================================================
+           BUSINESS CASE — RISK SECTION
+           ============================================================ */
+        .risk-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px; margin-bottom: 40px; }
+        .risk-kpis { display: flex; flex-direction: column; gap: var(--gap); }
+
+        .risk-kpi {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 24px;
+        }
+
+        .risk-kpi .kpi-label { font-size: 11px; }
+        .risk-kpi .kpi-value { font-size: 40px; }
+
+        .implications-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 32px;
+        }
+
+        .implications-card h3 {
+            font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+            color: var(--pendo-pink); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px;
+        }
+
+        .implication { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+        .implication:last-child { margin-bottom: 0; }
+
+        .implication-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+
+        .implication p { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+        .implication strong { color: var(--text-primary); }
+
+        /* ============================================================
+           MECHANISM — 4 STEPS
+           ============================================================ */
+        .steps-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gap); margin-bottom: 32px; }
+
+        .step-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-top: 3px solid var(--pendo-pink); border-radius: var(--radius);
+            padding: 24px; text-align: left;
+        }
+
+        .step-number {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; background: var(--pendo-pink); border-radius: 8px;
+            font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: white; margin-bottom: 12px;
+        }
+
+        .step-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px; margin-left: 8px; margin-bottom: 12px; font-size: 20px;
+        }
+
+        .step-card h4 { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .step-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+        .benchmark-callout {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-left: 4px solid var(--pendo-pink); border-radius: var(--radius); padding: 24px 32px;
+        }
+
+        .benchmark-callout .callout-label {
+            font-size: 11px; font-weight: 600; color: var(--pendo-pink);
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+        }
+
+        .benchmark-callout p { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+        .benchmark-callout strong { color: var(--text-primary); }
+
+        /* ============================================================
+           ROI TABLE
+           ============================================================ */
+        .roi-table-wrapper {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
+        }
+
+        .roi-table { width: 100%; border-collapse: collapse; }
+
+        .roi-table thead th {
+            padding: 16px 24px; text-align: left; font-size: 13px; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .roi-table thead th:first-child { background: var(--bg-card); }
+        .roi-table thead th.conservative { background: var(--bg-card-elevated); color: var(--text-secondary); }
+        .roi-table thead th.benchmark { background: var(--pendo-pink-soft); color: var(--pendo-pink); }
+
+        .roi-table thead th .th-sub {
+            display: block; font-size: 11px; font-weight: 500; color: var(--text-muted);
+            text-transform: none; letter-spacing: 0; margin-top: 2px;
+        }
+
+        .roi-table tbody td { padding: 16px 24px; font-size: 15px; border-bottom: 1px solid var(--border-subtle); }
+        .roi-table tbody td:first-child { color: var(--text-secondary); font-weight: 500; }
+
+        .roi-table tbody td.conservative {
+            background: rgba(30, 30, 42, 0.5); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 18px;
+        }
+
+        .roi-table tbody td.benchmark {
+            background: rgba(255, 64, 129, 0.05); font-family: 'Sora', sans-serif;
+            font-weight: 700; font-size: 18px; color: var(--pendo-pink);
+        }
+
+        .roi-table tbody tr.highlight td { border-top: 2px solid var(--pendo-pink); }
+        .roi-table tbody tr.highlight td.conservative { color: var(--text-primary); }
+        .roi-table tbody tr.highlight td.benchmark { color: var(--pendo-pink); font-size: 22px; }
+
+        .breakeven-callout {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-left: 4px solid var(--accent-green); border-radius: var(--radius); padding: 20px 28px;
+        }
+
+        .breakeven-callout strong { color: var(--accent-green); }
+        .breakeven-callout span { color: var(--text-secondary); font-size: 15px; }
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
+        .dashboard-footer {
+            text-align: center; padding: 40px;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-muted); font-size: 12px;
+        }
+
+        .dashboard-footer .footer-brand {
+            font-family: 'Sora', sans-serif; font-weight: 600;
+            color: var(--text-secondary); margin-bottom: 4px;
+        }
+
+        /* ============================================================
+           SECTION DIVIDERS
+           ============================================================ */
+        .section-divider { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+        .section-divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-subtle), transparent); }
+        .section-divider span { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 1024px) {
+            .chart-grid { grid-template-columns: 1fr; }
+            .risk-layout { grid-template-columns: 1fr; }
+            .steps-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .section { padding: 20px 20px 10px; }
+            .nav { padding: 0 20px; }
+            .section-title { font-size: 28px; }
+            .steps-row { grid-template-columns: 1fr; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media print {
+            .nav { display: none; }
+            .section { padding: 20px 0; }
+            .collapsible-body { max-height: none !important; opacity: 1 !important; padding-bottom: 40px !important; }
+            .chevron { display: none; }
+            body { background: white; color: #1a1a2e; }
+            .card, .kpi-card, .chart-card, .readiness-card, .risk-kpi, .implications-card,
+            .step-card, .benchmark-callout, .roi-table-wrapper, .breakeven-callout {
+                background: white; border: 1px solid #e2e8f0; box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================================================================
+     NAVIGATION
+     ================================================================ -->
+<nav class="nav">
+    <div class="nav-logo">
+        <div class="logo-icon"><i class="fa-solid fa-arrow-trend-up" style="font-size:12px;color:white;"></i></div>
+        Pendo Predict
+    </div>
+    <div class="nav-links">
+        <a class="nav-link active" onclick="scrollToSection('hero')">Overview</a>
+        <a class="nav-link" onclick="scrollToSection('roi')">ROI</a>
+        <a class="nav-link" onclick="scrollToSection('risk')">Renewal Risk</a>
+        <a class="nav-link" onclick="scrollToSection('mechanism')">How It Works</a>
+        <a class="nav-link" onclick="scrollToSection('readiness')">Data Readiness</a>
+        <a class="nav-link" onclick="scrollToSection('eda')">Data Analysis</a>
+        <a class="nav-link" onclick="scrollToSection('usage')">Product Usage</a>
+    </div>
+    <div class="nav-customer">{{CUSTOMER_NAME}}</div>
+</nav>
+
+
+<!-- ================================================================
+     SECTION 1 — HERO / TITLE (always open)
+     ================================================================ -->
+<div class="section" id="hero" style="display:flex; align-items:center; min-height:100vh; padding-top:96px; padding-bottom:60px;">
+    <div class="section-inner" style="text-align:center;">
+        <div style="margin-bottom:24px;">
+            <span style="display:inline-block; background:var(--pendo-pink-soft); color:var(--pendo-pink); font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; padding:6px 16px; border-radius:20px;">Proof of Technology</span>
+        </div>
+        <h1 style="font-family:'Sora',sans-serif; font-size:52px; font-weight:700; line-height:1.15; margin-bottom:16px;">
+            Your Data, Our Analysis:<br>
+            <span style="color:var(--pendo-pink);">Predictive Revenue Retention</span>
+        </h1>
+        <p style="font-size:18px; color:var(--text-secondary); max-width:640px; margin:0 auto 40px;">
+            We connected to your CRM and Pendo data, investigated your data quality,
+            analyzed your renewal patterns, and quantified the impact Predict can deliver.
+        </p>
+        <div style="margin-top:48px;">
+            <span style="font-size:12px; color:var(--text-muted);">Prepared {{ANALYSIS_DATE}} by Pendo's Customer Engineering Team</span>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     SECTION 2 — ROI (moved up)
+     ================================================================ -->
+<div class="section collapsed" id="roi">
+    <div class="section-inner">
+        <div class="collapsible-trigger" onclick="toggleSection('roi')">
+            <div class="trigger-left">
+                <div class="section-header">
+                    <div class="section-label">The ROI</div>
+                    <h2 class="section-title">Conservative vs. Benchmark</h2>
+                    <div class="gradient-line"></div>
+                    <p class="section-subtitle">Predict pays for itself. Here's how the math looks at two scenarios.</p>
+                </div>
+            </div>
+            <div class="chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+
+        <div class="section-summary">
+            <div class="summary-chip">Conservative: <span class="chip-value">{{ROI_CONSERVATIVE_ANNUAL}}</span>/yr retained</div>
+            <div class="summary-chip">Benchmark: <span class="chip-value pink">{{ROI_BENCHMARK_ANNUAL}}</span>/yr retained</div>
+            <div class="summary-chip">Break-even: <span class="chip-value green">1–2 accounts</span></div>
+        </div>
+
+        <div class="collapsible-body" data-section="roi">
+            <div class="roi-table-wrapper">
+                <table class="roi-table">
+                    <thead>
+                        <tr>
+                            <th style="width:35%;">Metric</th>
+                            <th class="conservative" style="width:32.5%;">
+                                Conservative Case
+                                <span class="th-sub">1 percentage point reduction</span>
+                            </th>
+                            <th class="benchmark" style="width:32.5%;">
+                                Benchmark Case
+                                <span class="th-sub">2 percentage point reduction (avg. Predict customer)</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Churn Rate Reduced By</td>
+                            <td class="conservative">1.0 pp</td>
+                            <td class="benchmark">2.0 pp</td>
+                        </tr>
+                        <tr>
+                            <td>Renewals Saved</td>
+                            <td class="conservative">{{ROI_CONSERVATIVE_RENEWALS_SAVED}}</td>
+                            <td class="benchmark">{{ROI_BENCHMARK_RENEWALS_SAVED}}</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td>Additional Annual Revenue Retained</td>
+                            <td class="conservative">{{ROI_CONSERVATIVE_ANNUAL}}</td>
+                            <td class="benchmark">{{ROI_BENCHMARK_ANNUAL}}</td>
+                        </tr>
+                        <tr>
+                            <td>Additional Monthly Revenue Retained</td>
+                            <td class="conservative">{{ROI_CONSERVATIVE_MONTHLY}}</td>
+                            <td class="benchmark">{{ROI_BENCHMARK_MONTHLY}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="breakeven-callout">
+                <span><strong>Break-even:</strong> Every renewal saved protects <strong>{{AVG_ARR}}</strong> in ARR. Predict pays for itself with just <strong>1–2 accounts retained annually.</strong></span>
+            </div>
+
+            <div style="margin-top:32px; text-align:center;">
+                <p style="font-size:14px; color:var(--text-muted); max-width:640px; margin:0 auto;">
+                    <em>i: By identifying at-risk accounts earlier and more effectively, Pendo Predict allows your team to focus efforts on the accounts that matter most. Our customers see an average 2–3 percentage point reduction in churn. Here we are using a conservative 1 percentage point estimate for the impact of Pendo Predict.</em>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     SECTION 3 — RENEWAL RISK
+     ================================================================ -->
+<div class="section collapsed" id="risk" style="background:var(--bg-section);">
+    <div class="section-inner">
+        <div class="collapsible-trigger" onclick="toggleSection('risk')">
+            <div class="trigger-left">
+                <div class="section-header">
+                    <div class="section-label">Business Case</div>
+                    <h2 class="section-title">Your Renewal Risk</h2>
+                    <div class="gradient-line"></div>
+                    <p class="section-subtitle">We analyzed your data. Here's what's at stake.</p>
+                </div>
+            </div>
+            <div class="chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+
+        <div class="section-summary">
+            <div class="summary-chip">Upcoming Renewals: <span class="chip-value">{{UPCOMING_RENEWALS_DOLLAR}}</span></div>
+            <div class="summary-chip">Churn Rate: <span class="chip-value pink">{{PRIOR_YEAR_CHURN_RATE}}%</span></div>
+            <div class="summary-chip">At-Risk ARR: <span class="chip-value red">{{ESTIMATED_CHURN_DOLLAR}}</span></div>
+        </div>
+
+        <div class="collapsible-body" data-section="risk">
+            <div class="risk-layout">
+                <div class="risk-kpis">
+                    <div class="risk-kpi">
+                        <div class="kpi-label">Upcoming $ Available to Renew</div>
+                        <div class="kpi-value">{{UPCOMING_RENEWALS_DOLLAR}}</div>
+                    </div>
+                    <div class="risk-kpi">
+                        <div class="kpi-label">Current Churn Rate</div>
+                        <div class="kpi-value pink">{{PRIOR_YEAR_CHURN_RATE}}%</div>
+                    </div>
+                    <div class="risk-kpi">
+                        <div class="kpi-label">Estimated Churn Over Next Year</div>
+                        <div class="kpi-value red">{{ESTIMATED_CHURN_DOLLAR}}</div>
+                    </div>
+                </div>
+
+                <div class="implications-card">
+                    <h3>What This Means for Your Business</h3>
+                    <div class="implication">
+                        <div class="implication-icon">⚠️</div>
+                        <p><strong>{{ESTIMATED_CHURN_ACCOUNTS}} accounts</strong> are statistically likely to churn over the next 12 months — based on your historical churn rate.</p>
+                    </div>
+                    <div class="implication">
+                        <div class="implication-icon">💰</div>
+                        <p><strong>{{ESTIMATED_CHURN_DOLLAR}}</strong> in ARR is at risk. That's revenue your team will have to replace, compounding your growth burden.</p>
+                    </div>
+                    <div class="implication">
+                        <div class="implication-icon">🔍</div>
+                        <p><strong>No early warning system</strong> means at-risk accounts aren't flagged until it's too late to intervene effectively.</p>
+                    </div>
+                    <div class="implication">
+                        <div class="implication-icon">📋</div>
+                        <p><strong>Your CS team is reactive.</strong> Without prediction scores, effort is distributed by relationship, not by risk.</p>
+                    </div>
+                </div>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted);">
+                +: All dollars on open renewals set to close over the next year &nbsp;·&nbsp; *: Measured across all closed renewals from the prior year
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     SECTION 4 — HOW PREDICT WORKS
+     ================================================================ -->
+<div class="section collapsed" id="mechanism">
+    <div class="section-inner">
+        <div class="collapsible-trigger" onclick="toggleSection('mechanism')">
+            <div class="trigger-left">
+                <div class="section-header">
+                    <div class="section-label">The Solution</div>
+                    <h2 class="section-title">How Pendo Predict Catches Risk Early</h2>
+                    <div class="gradient-line"></div>
+                    <p class="section-subtitle">A 1 percentage point reduction in churn doesn't happen by accident. Here's the mechanism.</p>
+                </div>
+            </div>
+            <div class="chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+
+        <div class="section-summary">
+            <div class="summary-chip"><span class="chip-value">4 steps</span> — Connect → Model → Score → Act</div>
+            <div class="summary-chip">Benchmark: <span class="chip-value pink">2–3 pp</span> avg churn reduction</div>
+        </div>
+
+        <div class="collapsible-body" data-section="mechanism">
+            <div class="steps-row">
+                <div class="step-card">
+                    <span class="step-number">1</span><span class="step-icon">🔗</span>
+                    <h4>Connect Your Data</h4>
+                    <p>Pendo usage + Salesforce CRM are connected. No new tagging required — we work with what you have.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-number">2</span><span class="step-icon">🧠</span>
+                    <h4>We Build the Model</h4>
+                    <p>Pendo Customer Engineers build and maintain a churn model tailored to your business and customer base. You don't need an ML team.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-number">3</span><span class="step-icon">📊</span>
+                    <h4>Surface Scores Anywhere</h4>
+                    <p>Risk scores, explanations, and recommended actions appear directly where your teams already work.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-number">4</span><span class="step-icon">⚡</span>
+                    <h4>Act Early</h4>
+                    <p>At-risk accounts are flagged before the renewal conversation starts. Your team focuses energy where it matters most.</p>
+                </div>
+            </div>
+
+            <div class="benchmark-callout">
+                <div class="callout-label">What We See in Practice</div>
+                <p>Pendo Predict customers see an average <strong>2–3 percentage point reduction in churn rate.</strong> Our benchmarks are built from real deployment data — not theoretical models.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     SECTION 5 — DATA READINESS
+     ================================================================ -->
+<div class="section collapsed" id="readiness" style="background:var(--bg-section);">
+    <div class="section-inner">
+        <div class="collapsible-trigger" onclick="toggleSection('readiness')">
+            <div class="trigger-left">
+                <div class="section-header">
+                    <div class="section-label">Data Readiness</div>
+                    <h2 class="section-title">We Looked Under the Hood</h2>
+                    <div class="gradient-line"></div>
+                    <p class="section-subtitle">Before building any model, we validated the quality and completeness of your data. Here's what we found.</p>
+                </div>
+            </div>
+            <div class="chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+
+        <div class="section-summary">
+            <div class="summary-chip">SFDC Accounts: <span class="chip-value">{{SFDC_TOTAL_ACCOUNTS}}</span></div>
+            <div class="summary-chip">Match Rate: <span class="chip-value green">{{PENDO_SFDC_MATCH_RATE}}%</span></div>
+            <div class="summary-chip">Churns Observed: <span class="chip-value green">{{TOTAL_CHURNS}}</span></div>
+            <div class="summary-chip">Verdict: <span class="chip-value green">Model-Ready</span></div>
+        </div>
+
+        <div class="collapsible-body" data-section="readiness">
+            <!-- Readiness KPIs -->
+            <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Salesforce Accounts</div>
+                    <div class="kpi-value">{{SFDC_TOTAL_ACCOUNTS}}</div>
+                    <div class="kpi-note">Active accounts in your CRM</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Opportunities</div>
+                    <div class="kpi-value">{{SFDC_TOTAL_OPPS}}</div>
+                    <div class="kpi-note">Renewal + new biz opportunities</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Active Pendo Subscriptions</div>
+                    <div class="kpi-value">{{PENDO_SUBSCRIPTIONS}}</div>
+                    <div class="kpi-note">Subscriptions sending usage data</div>
+                </div>
+            </div>
+
+            <div class="section-divider"><span>Model Readiness Checks</span></div>
+
+            <div class="readiness-grid">
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Historical Churns Observed</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{TOTAL_CHURNS}}</div>
+                        <p>Sufficient churn events to train a reliable model</p>
+                        <span class="readiness-threshold pass">≥ 200 required</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Historical Data Window</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{DATA_MONTHS}} months</div>
+                        <p>Enough time depth to capture seasonal patterns</p>
+                        <span class="readiness-threshold pass">≥ 12 months required</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Pendo → Salesforce Match Rate</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{PENDO_SFDC_MATCH_RATE}}%</div>
+                        <p>Pendo subscriptions successfully mapped to SFDC accounts</p>
+                        <span class="readiness-threshold pass">≥ 70% recommended</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Closed Renewals (Prior Year)</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{CLOSED_RENEWALS_PRIOR_YEAR}}</div>
+                        <p>Completed renewal events for model training</p>
+                        <span class="readiness-threshold pass">Strong signal</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>ARR Field Populated</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{ARR_POPULATED_RATE}}%</div>
+                        <p>Accounts with non-null ARR values in Salesforce</p>
+                        <span class="readiness-threshold pass">≥ 80% recommended</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Pendo Events (Last 12 mo)</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{PENDO_TOTAL_EVENTS}}</div>
+                        <p>Total events across all accounts</p>
+                        <span class="readiness-threshold pass">Rich usage signal</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Pendo Minutes (Last 12 mo)</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{PENDO_TOTAL_MINUTES}}</div>
+                        <p>Total minutes of product usage</p>
+                        <span class="readiness-threshold pass">Strong engagement depth</span>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-icon pass"><i class="fa-solid fa-check"></i></div>
+                    <div class="readiness-content">
+                        <h4>Pendo Visitors (Last 12 mo)</h4>
+                        <div class="readiness-value" style="color:var(--accent-green);">{{PENDO_TOTAL_VISITORS}}</div>
+                        <p>Peak monthly unique visitors</p>
+                        <span class="readiness-threshold pass">Broad user coverage</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="benchmark-callout" style="border-left-color:var(--accent-green);">
+                <div class="callout-label" style="color:var(--accent-green);">Verdict</div>
+                <p><strong>Your data is model-ready.</strong> You have sufficient churn history, a strong Pendo-to-SFDC match rate, and deep product usage data. Pendo Predict can build a high-confidence churn model from this foundation.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     SECTION 6 — EDA: CRM & RENEWALS
+     ================================================================ -->
+<div class="section collapsed" id="eda">
+    <div class="section-inner">
+        <div class="collapsible-trigger" onclick="toggleSection('eda')">
+            <div class="trigger-left">
+                <div class="section-header">
+                    <div class="section-label">Exploratory Data Analysis</div>
+                    <h2 class="section-title">Your Renewal & Churn Landscape</h2>
+                    <div class="gradient-line"></div>
+                    <p class="section-subtitle">A data-driven view of your renewal patterns, churn trends, and what's coming up over the next year.</p>
+                </div>
+            </div>
+            <div class="chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+
+        <div class="section-summary">
+            <div class="summary-chip">Prior Year Renewals: <span class="chip-value">{{PRIOR_YEAR_RENEWALS_COUNT}}</span></div>
+            <div class="summary-chip">Prior Year Churns: <span class="chip-value red">{{PRIOR_YEAR_CHURNS_COUNT}}</span></div>
+            <div class="summary-chip">Avg ARR: <span class="chip-value">{{AVG_ARR}}</span></div>
+            <div class="summary-chip">Churn Rate: <span class="chip-value pink">{{PRIOR_YEAR_CHURN_RATE}}%</span></div>
+        </div>
+
+        <div class="collapsible-body" data-section="eda">
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Renewals & Churns — Count by Month</h3>
+                    <div class="chart-subtitle">Closed renewals vs. churns over the prior 12 months</div>
+                    <canvas id="chart-renewals-count"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Renewals & Churns — ARR by Month</h3>
+                    <div class="chart-subtitle">Dollar value of renewals vs. churns over the prior 12 months</div>
+                    <canvas id="chart-renewals-arr"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Churn Rate Trend</h3>
+                    <div class="chart-subtitle">Rolling monthly churn rate (count-based) over the prior 12 months</div>
+                    <canvas id="chart-churn-rate"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Upcoming Renewals — Next 12 Months</h3>
+                    <div class="chart-subtitle">Scheduled renewal count and ARR by month</div>
+                    <canvas id="chart-upcoming-renewals"></canvas>
+                </div>
+            </div>
+
+            <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Renewals (Prior Year)</div>
+                    <div class="kpi-value">{{PRIOR_YEAR_RENEWALS_COUNT}}</div>
+                    <div class="kpi-note">Closed-won renewals</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Churns (Prior Year)</div>
+                    <div class="kpi-value red">{{PRIOR_YEAR_CHURNS_COUNT}}</div>
+                    <div class="kpi-note">Lost accounts</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Average ARR</div>
+                    <div class="kpi-value">{{AVG_ARR}}</div>
+                    <div class="kpi-note">Across closed renewals</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Prior Year Churn Rate</div>
+                    <div class="kpi-value pink">{{PRIOR_YEAR_CHURN_RATE}}%</div>
+                    <div class="kpi-note">Count-based</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     SECTION 7 — EDA: PRODUCT USAGE
+     ================================================================ -->
+<div class="section collapsed" id="usage" style="background:var(--bg-section);">
+    <div class="section-inner">
+        <div class="collapsible-trigger" onclick="toggleSection('usage')">
+            <div class="trigger-left">
+                <div class="section-header">
+                    <div class="section-label">Product Usage Data</div>
+                    <h2 class="section-title">Pendo Usage Signal</h2>
+                    <div class="gradient-line"></div>
+                    <p class="section-subtitle">Your Pendo instrumentation provides deep behavioral data that powers Predict's feature importance analysis.</p>
+                </div>
+            </div>
+            <div class="chevron"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+
+        <div class="section-summary">
+            <div class="summary-chip">Active Accounts: <span class="chip-value">{{PENDO_ACTIVE_ACCOUNTS}}</span></div>
+            <div class="summary-chip">Total Events: <span class="chip-value">{{PENDO_TOTAL_EVENTS}}</span></div>
+            <div class="summary-chip">Total Minutes: <span class="chip-value">{{PENDO_TOTAL_MINUTES}}</span></div>
+            <div class="summary-chip">Unique Visitors: <span class="chip-value">{{PENDO_TOTAL_VISITORS}}</span></div>
+        </div>
+
+        <div class="collapsible-body" data-section="usage">
+
+            <!-- KPI row -->
+            <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="kpi-card">
+                    <div class="kpi-label">Active Accounts</div>
+                    <div class="kpi-value">{{PENDO_ACTIVE_ACCOUNTS}}</div>
+                    <div class="kpi-note">Peak monthly (last 12 mo)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Events</div>
+                    <div class="kpi-value">{{PENDO_TOTAL_EVENTS}}</div>
+                    <div class="kpi-note">All interactions captured (12 mo)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total Minutes</div>
+                    <div class="kpi-value">{{PENDO_TOTAL_MINUTES}}</div>
+                    <div class="kpi-note">Time in-product (12 mo)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Unique Visitors</div>
+                    <div class="kpi-value">{{PENDO_TOTAL_VISITORS}}</div>
+                    <div class="kpi-note">Peak monthly unique visitors</div>
+                </div>
+            </div>
+
+            <!-- Charts row 1: Accounts + Events -->
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Active Pendo Accounts</h3>
+                    <div class="chart-subtitle">Monthly count of accounts with at least one event</div>
+                    <canvas id="chart-pendo-accounts"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Event Volume</h3>
+                    <div class="chart-subtitle">Total Pendo events per month</div>
+                    <canvas id="chart-pendo-events"></canvas>
+                </div>
+            </div>
+
+            <!-- Charts row 2: Minutes + Visitors -->
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Time in Product</h3>
+                    <div class="chart-subtitle">Total minutes of product usage per month</div>
+                    <canvas id="chart-pendo-minutes"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Unique Visitors</h3>
+                    <div class="chart-subtitle">Distinct visitors engaging with the product each month</div>
+                    <canvas id="chart-pendo-visitors"></canvas>
+                </div>
+            </div>
+
+            <!-- Insight callout -->
+            <div class="benchmark-callout" style="border-left-color:var(--accent-green);">
+                <div class="callout-label" style="color:var(--accent-green);">Why This Matters</div>
+                <p>Predict uses these behavioral signals — session frequency, time-in-product, feature breadth, and visitor engagement trends — as leading indicators of account health. Accounts showing declining usage patterns are flagged <strong>months before</strong> the renewal conversation, giving your team time to intervene.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     CLOSING (always open)
+     ================================================================ -->
+<div class="section" style="display:flex; align-items:center; min-height:60vh; background:var(--bg-section);">
+    <div class="section-inner" style="text-align:center;">
+        <div style="margin-bottom:24px;">
+            <span style="display:inline-block; background:var(--pendo-pink-soft); color:var(--pendo-pink); font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; padding:6px 16px; border-radius:20px;">Take Action</span>
+        </div>
+        <h2 style="font-family:'Sora',sans-serif; font-size:40px; font-weight:700; line-height:1.2; margin-bottom:16px;">
+            Doing Nothing Is Expensive.<br>
+            <span style="color:var(--pendo-pink);">Take Action With Pendo Predict.</span>
+        </h2>
+        <p style="font-size:17px; color:var(--text-secondary); max-width:560px; margin:0 auto 32px;">
+            Your data is ready. The math is clear. Every month without Predict is
+            <strong style="color:var(--pendo-pink);">{{ROI_CONSERVATIVE_MONTHLY}}</strong> in revenue left unprotected.
+        </p>
+        <div style="display:flex; gap:16px; justify-content:center;">
+            <div style="background:var(--pendo-pink); color:white; padding:14px 32px; border-radius:8px; font-family:'Sora',sans-serif; font-weight:600; font-size:15px;">
+                Let's Get Started
+            </div>
+        </div>
+        <div style="margin-top:32px; font-size:13px; color:var(--text-muted);">
+            {{CE_NAME}} &nbsp;·&nbsp; {{CE_EMAIL}} &nbsp;·&nbsp; Pendo Customer Engineering
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     FOOTER
+     ================================================================ -->
+<div class="dashboard-footer">
+    <div class="footer-brand">PENDO PREDICT</div>
+    <div>Prepared for {{CUSTOMER_NAME}} &nbsp;·&nbsp; {{ANALYSIS_DATE}} &nbsp;·&nbsp; Confidential</div>
+</div>
+
+
+<!-- ================================================================
+     JAVASCRIPT — Charts, Navigation, Accordion, Mock Data
+     ================================================================ -->
+<script>
+// ============================================================
+// PLACEHOLDER DATA — Replace with real query output
+// ============================================================
+const DATA = {
+    months: ['May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26'],
+    renewals_count:  [185, 210, 195, 178, 220, 198, 175, 160, 205, 215, 192, 188],
+    churns_count:    [38,  42,  35,  40,  45,  39,  36,  33,  41,  44,  37,  35],
+    renewals_arr:    [13500, 15300, 14200, 12950, 16050, 14400, 12750, 11650, 14950, 15700, 14000, 13700],
+    churns_arr:      [2770, 3060, 2550, 2920, 3280, 2840, 2620, 2400, 2990, 3210, 2700, 2550],
+    churn_rate:      [17.0, 16.7, 15.2, 18.4, 17.0, 16.5, 17.1, 17.1, 16.7, 17.0, 16.2, 15.7],
+    upcoming_months: ['May 26','Jun 26','Jul 26','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26','Jan 27','Feb 27','Mar 27','Apr 27'],
+    upcoming_count:  [195, 210, 185, 200, 230, 205, 190, 175, 215, 220, 200, 195],
+    upcoming_arr:    [14200, 15300, 13500, 14600, 16750, 14950, 13850, 12750, 15700, 16050, 14600, 14200],
+    pendo_active_accounts: [1850, 1920, 1890, 1940, 1980, 2010, 1970, 1930, 2050, 2100, 2080, 2120],
+    pendo_total_events:    [4450, 4970, 4710, 5140, 5480, 5060, 4620, 4270, 5280, 5620, 5200, 5470],
+    pendo_total_minutes:   [18200, 20100, 19300, 21000, 22400, 20800, 19000, 17500, 21600, 23000, 21300, 22400],
+    pendo_total_visitors:  [3200, 3450, 3300, 3550, 3700, 3500, 3250, 3100, 3600, 3800, 3650, 3750],
+};
+
+
+// ============================================================
+// CHART.JS DEFAULTS — Pendo Dark Theme
+// ============================================================
+Chart.defaults.color = '#94A3B8';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.padding = 16;
+Chart.defaults.plugins.tooltip.backgroundColor = '#1e1e2a';
+Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,0.1)';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.titleColor = '#FFFFFF';
+Chart.defaults.plugins.tooltip.bodyColor = '#94A3B8';
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.plugins.tooltip.padding = 12;
+
+const PINK = '#FF4081', PINK_BG = 'rgba(255, 64, 129, 0.25)';
+const BLUE = '#3B82F6', BLUE_BG = 'rgba(59, 130, 246, 0.25)';
+const GREEN = '#34D399', GREEN_BG = 'rgba(52, 211, 153, 0.25)';
+const RED = '#F87171', RED_BG = 'rgba(248, 113, 113, 0.25)';
+const AMBER = '#FBBF24', AMBER_BG = 'rgba(251, 191, 36, 0.25)';
+const PURPLE = '#A78BFA', PURPLE_BG = 'rgba(167, 139, 250, 0.25)';
+
+
+// ============================================================
+// LAZY CHART INITIALIZATION
+// Charts are created only when their section is first expanded,
+// because Chart.js needs a visible canvas to render correctly.
+// ============================================================
+const chartInitialized = {};
+
+function initChartsForSection(sectionId) {
+    if (chartInitialized[sectionId]) return;
+    chartInitialized[sectionId] = true;
+
+    // Small delay to let the DOM finish rendering the expanded body
+    requestAnimationFrame(() => {
+
+    if (sectionId === 'eda') {
+        // Chart 1: Renewals & Churns — Count
+        new Chart(document.getElementById('chart-renewals-count'), {
+            type: 'bar',
+            data: {
+                labels: DATA.months,
+                datasets: [
+                    { label: 'Renewals', data: DATA.renewals_count, backgroundColor: BLUE_BG, borderColor: BLUE, borderWidth: 1.5, borderRadius: 4 },
+                    { label: 'Churns', data: DATA.churns_count, backgroundColor: RED_BG, borderColor: RED, borderWidth: 1.5, borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+            }
+        });
+
+        // Chart 2: Renewals & Churns — ARR
+        new Chart(document.getElementById('chart-renewals-arr'), {
+            type: 'bar',
+            data: {
+                labels: DATA.months,
+                datasets: [
+                    { label: 'Renewed ARR ($K)', data: DATA.renewals_arr, backgroundColor: BLUE_BG, borderColor: BLUE, borderWidth: 1.5, borderRadius: 4 },
+                    { label: 'Churned ARR ($K)', data: DATA.churns_arr, backgroundColor: RED_BG, borderColor: RED, borderWidth: 1.5, borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}K` } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: v => `$${v.toLocaleString()}K` } } }
+            }
+        });
+
+        // Chart 3: Churn Rate Trend
+        new Chart(document.getElementById('chart-churn-rate'), {
+            type: 'line',
+            data: {
+                labels: DATA.months,
+                datasets: [{
+                    label: 'Churn Rate (%)', data: DATA.churn_rate, borderColor: PINK, backgroundColor: PINK_BG,
+                    borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 4,
+                    pointBackgroundColor: PINK, pointBorderColor: '#0a0a0f', pointBorderWidth: 2, pointHoverRadius: 7,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Churn Rate: ${ctx.parsed.y}%` } } },
+                scales: { x: { grid: { display: false } }, y: { min: 10, max: 25, ticks: { callback: v => `${v}%` } } }
+            }
+        });
+
+        // Chart 4: Upcoming Renewals
+        new Chart(document.getElementById('chart-upcoming-renewals'), {
+            type: 'bar',
+            data: {
+                labels: DATA.upcoming_months,
+                datasets: [
+                    { label: 'Renewal Count', data: DATA.upcoming_count, backgroundColor: GREEN_BG, borderColor: GREEN, borderWidth: 1.5, borderRadius: 4, yAxisID: 'y' },
+                    { label: 'Renewal ARR ($K)', data: DATA.upcoming_arr, type: 'line', borderColor: AMBER, backgroundColor: 'transparent', borderWidth: 2.5, tension: 0.35, pointRadius: 3, pointBackgroundColor: AMBER, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label.includes('ARR') ? `ARR: $${ctx.parsed.y.toLocaleString()}K` : `Count: ${ctx.parsed.y}` } } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'Count', color: '#64748B' } },
+                    y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => `$${v.toLocaleString()}K` }, title: { display: true, text: 'ARR ($K)', color: '#64748B' } }
+                }
+            }
+        });
+    }
+
+    if (sectionId === 'usage') {
+        // Chart 5: Active Pendo Accounts
+        new Chart(document.getElementById('chart-pendo-accounts'), {
+            type: 'line',
+            data: {
+                labels: DATA.months,
+                datasets: [{
+                    label: 'Active Accounts', data: DATA.pendo_active_accounts, borderColor: GREEN, backgroundColor: GREEN_BG,
+                    borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 4,
+                    pointBackgroundColor: GREEN, pointBorderColor: '#111118', pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: false, ticks: { callback: v => v.toLocaleString() } } }
+            }
+        });
+
+        // Chart 6: Event Volume
+        new Chart(document.getElementById('chart-pendo-events'), {
+            type: 'bar',
+            data: {
+                labels: DATA.months,
+                datasets: [{
+                    label: 'Events', data: DATA.pendo_total_events, backgroundColor: BLUE_BG, borderColor: BLUE,
+                    borderWidth: 1, borderRadius: 3,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Events: ${ctx.parsed.y.toLocaleString()}` } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString() } } }
+            }
+        });
+
+        // Chart 7: Time in Product (Minutes)
+        new Chart(document.getElementById('chart-pendo-minutes'), {
+            type: 'line',
+            data: {
+                labels: DATA.months,
+                datasets: [{
+                    label: 'Minutes', data: DATA.pendo_total_minutes, borderColor: PURPLE, backgroundColor: PURPLE_BG,
+                    borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 4,
+                    pointBackgroundColor: PURPLE, pointBorderColor: '#111118', pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Minutes: ${ctx.parsed.y.toLocaleString()}` } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: false, ticks: { callback: v => v.toLocaleString() } } }
+            }
+        });
+
+        // Chart 8: Unique Visitors
+        new Chart(document.getElementById('chart-pendo-visitors'), {
+            type: 'line',
+            data: {
+                labels: DATA.months,
+                datasets: [{
+                    label: 'Visitors', data: DATA.pendo_total_visitors, borderColor: AMBER, backgroundColor: AMBER_BG,
+                    borderWidth: 2.5, fill: true, tension: 0.35, pointRadius: 4,
+                    pointBackgroundColor: AMBER, pointBorderColor: '#111118', pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `Visitors: ${ctx.parsed.y.toLocaleString()}` } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: false, ticks: { callback: v => v.toLocaleString() } } }
+            }
+        });
+    }
+
+    }); // end requestAnimationFrame
+}
+
+
+// ============================================================
+// ACCORDION — Toggle sections open/closed
+// ============================================================
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const body = section.querySelector('.collapsible-body');
+
+    if (section.classList.contains('collapsed')) {
+        // Open
+        section.classList.remove('collapsed');
+        body.classList.add('open');
+        // Initialize charts if this section has them
+        initChartsForSection(sectionId);
+    } else {
+        // Close
+        section.classList.add('collapsed');
+        body.classList.remove('open');
+    }
+}
+
+
+// ============================================================
+// NAVIGATION — Active section tracking + smooth scroll
+// ============================================================
+function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        const navHeight = document.querySelector('.nav').offsetHeight;
+        const top = el.getBoundingClientRect().top + window.scrollY - navHeight;
+        window.scrollTo({ top, behavior: 'smooth' });
+
+        // Auto-expand the section if it's collapsed
+        if (el.classList.contains('collapsed')) {
+            toggleSection(id);
+        }
+    }
+}
+
+// Highlight active nav link on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            navLinks.forEach(link => link.classList.remove('active'));
+            const activeLink = document.querySelector(`.nav-link[onclick="scrollToSection('${entry.target.id}')"]`);
+            if (activeLink) activeLink.classList.add('active');
+        }
+    });
+}, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+
+sections.forEach(section => observer.observe(section));
+</script>
+
+</body>
+</html>

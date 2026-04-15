@@ -1,0 +1,171 @@
+{
+  "_README": "Pendo Predict POT — TechFlow Solutions. Auto-generated from intake form on 2026-04-15. See review notes at bottom.",
+
+  "customer": {
+    "name": "TechFlow Solutions",
+    "contact": "Sarah Chen, VP Revenue Operations",
+    "ce_name": "Jonathan Rice",
+    "ce_email": "jonathan.rice@pendo.io",
+    "analysis_date": "2026-04-10",
+    "sql_dialect": "athena"
+  },
+
+  "sfdc": {
+    "objects": {
+      "renewal_object": "Opportunity",
+      "account_object": "Account"
+    },
+
+    "fields": {
+      "account_id": "AccountId",
+      "account_name": "Account.Name",
+      "opportunity_id": "Id",
+
+      "arr": {
+        "field": "Amount",
+        "object": "Opportunity",
+        "transform": "Amount / Contract_Length_Months__c * 12",
+        "_source": "Q6: Customer said Amount is total contract value, term field is Contract_Length_Months__c. ARR transform provided by customer."
+      },
+
+      "close_date": {
+        "field": "CloseDate"
+      },
+
+      "renewal_date": {
+        "field": "Renewal_Due_Date__c"
+      },
+
+      "stage": {
+        "field": "StageName"
+      }
+    },
+
+    "filters": {
+      "is_renewal": {
+        "condition": "Type IN ('Renewal', 'Renewal - Auto Renew')",
+        "_source": "Q2: Customer said Type field with two values: 'Renewal' and 'Renewal - Auto Renew'",
+        "_confidence": "HIGH — customer provided exact values"
+      },
+
+      "is_closed": {
+        "condition": "IsClosed = TRUE"
+      },
+
+      "is_churn": {
+        "condition": "StageName = 'Closed - Lost'",
+        "_source": "Q3: Customer explicitly noted the dash — 'Closed - Lost' not 'Closed Lost'",
+        "_confidence": "HIGH — customer flagged this is a custom stage name"
+      },
+
+      "is_renewal_won": {
+        "condition": "StageName = 'Closed - Won'",
+        "_source": "Q4: Consistent with Q3 pattern — uses 'Closed - Won' with dash",
+        "_confidence": "HIGH — matches the naming convention from Q3"
+      },
+
+      "is_open_renewal": {
+        "condition": "IsClosed = FALSE",
+        "_source": "Q5: Customer said 'anything not in a Closed stage' — IsClosed = FALSE is the standard equivalent",
+        "_confidence": "HIGH — standard mapping"
+      },
+
+      "exclude_conditions": {
+        "conditions": [
+          "LOWER(Account.Name) NOT LIKE '%test%'",
+          "LOWER(Account.Name) NOT LIKE '%demo%'",
+          "Account.Name != 'TechFlow Internal'",
+          "Account.Name != 'TechFlow Sandbox'",
+          "Amount > 0"
+        ],
+        "_source": "Q9: 'Test' and 'Demo' name patterns + two named accounts. Q10: $0 records confirmed."
+      }
+    },
+
+    "time_windows": {
+      "historical_months": 12,
+      "upcoming_months": 12
+    }
+  },
+
+  "pendo": {
+    "account_mapping": {
+      "pendo_account_id_field": "accountId",
+      "sfdc_match_field": "Account.Id",
+      "_source": "Q8: Customer believes Pendo uses SFDC Account ID directly, but flagged uncertainty",
+      "_confidence": "MEDIUM — needs confirmation from Pendo admin Mike Torres (mike.torres@techflow.com)"
+    },
+
+    "tables": {
+      "_doc": "CE-provided: check the Predict query editor schema browser",
+      "subscriptions_table": "pendo.subscriptions",
+      "events_table": "pendo.events"
+    },
+
+    "columns": {
+      "event_date": "event_date",
+      "event_account_id": "account_id",
+      "event_type": "event_type",
+      "_event_type_values": {
+        "page": "page",
+        "track": "track",
+        "feature": "feature"
+      }
+    },
+
+    "data_source": {
+      "type": "pendo_api"
+    }
+  },
+
+  "dashboard_overrides": {
+    "predict_churn_reduction_conservative_pp": 1.0,
+    "predict_churn_reduction_benchmark_pp": 2.0
+  },
+
+  "_review": {
+    "_generated": "2026-04-15 by auto-config workflow",
+    "_intake_doc_id": "1_G1n8OoPy4IqUi2AKxo0_NUC0UU8ASrvPN_nT7Jl0hY",
+
+    "high_confidence": [
+      "Q1 → renewal_object: Opportunity (direct mapping)",
+      "Q2 → is_renewal: Type IN ('Renewal', 'Renewal - Auto Renew') — customer gave exact values",
+      "Q3 → is_churn: StageName = 'Closed - Lost' — customer explicitly flagged the dash",
+      "Q4 → is_renewal_won: StageName = 'Closed - Won' — consistent with Q3 convention",
+      "Q5 → is_open_renewal: IsClosed = FALSE — standard mapping",
+      "Q7 → close_date: CloseDate, renewal_date: Renewal_Due_Date__c (direct)",
+      "Q9 → exclude: Test, Demo, TechFlow Internal, TechFlow Sandbox (clear patterns)",
+      "Q10 → exclude: Amount > 0 (confirmed $0 records exist)",
+      "Q11 → 27 months history — exceeds 12-month minimum ✓",
+      "Q12 → ~340 churns — exceeds 200-churn minimum ✓"
+    ],
+
+    "needs_review": [
+      {
+        "field": "sfdc.fields.arr.transform",
+        "customer_said": "Amount is total contract value, term field is Contract_Length_Months__c",
+        "generated": "Amount / Contract_Length_Months__c * 12",
+        "flag": "REVIEW: Q13 says ~15% are multi-year deals where Amount reflects the FULL multi-year value. The transform handles this correctly (divides by months, multiplies by 12), but verify that Contract_Length_Months__c is reliably populated — if it's NULL for some records, TRY_CAST will return NULL and those records will drop from ARR calculations."
+      },
+      {
+        "field": "pendo.account_mapping.sfdc_match_field",
+        "customer_said": "I believe Pendo uses our Salesforce Account ID directly but I'd double-check with our Pendo admin",
+        "generated": "Account.Id",
+        "flag": "REVIEW: Customer was uncertain. Follow up with Mike Torres (mike.torres@techflow.com) to confirm before running Query 9."
+      }
+    ],
+
+    "warnings": [
+      "Q13 NOTE: Downsells tracked as 'Contraction' type on Opportunity — the is_renewal filter excludes these (only 'Renewal' and 'Renewal - Auto Renew'), which is correct behavior for churn analysis. But if you want to include downsell ARR in the pipeline view, you'd need to add 'Contraction' to the Type IN clause.",
+      "Q13 NOTE: HubSpot → SFDC migration in Jan 2024 means no data before that date. With 27 months of history this is fine, but the time-series charts will show nothing before 2024.",
+      "Q13 NOTE: Multi-year deals mean ARR transform is critical. If Contract_Length_Months__c is missing on any records, those will show as NULL ARR. Consider adding a COALESCE or default value."
+    ],
+
+    "ce_action_items": [
+      "1. Confirm Pendo-SFDC mapping with Mike Torres (mike.torres@techflow.com)",
+      "2. Fill in pendo.tables and pendo.columns after checking the Predict query editor schema",
+      "3. Spot-check a few records: verify Contract_Length_Months__c is populated on multi-year deals",
+      "4. Decide whether to include 'Contraction' type in the renewal filter for pipeline analysis"
+    ]
+  }
+}

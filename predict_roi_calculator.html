@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendo Predict — ROI Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ============================================================
+           CSS CUSTOM PROPERTIES — Pendo Dark Theme
+           ============================================================ */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #16161e;
+            --bg-card-elevated: #1e1e2a;
+            --bg-section: #111118;
+            --pendo-pink: #FF4081;
+            --pendo-pink-soft: rgba(255, 64, 129, 0.15);
+            --pendo-pink-glow: rgba(255, 64, 129, 0.3);
+            --accent-blue: #3B82F6;
+            --accent-green: #34D399;
+            --accent-amber: #FBBF24;
+            --accent-red: #F87171;
+            --accent-purple: #A78BFA;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --gap: 20px;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+           NAVIGATION
+           ============================================================ */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 40px;
+            display: flex; align-items: center; height: 56px; gap: 32px;
+        }
+
+        .nav-logo {
+            font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px;
+            color: var(--text-primary);
+            display: flex; align-items: center; gap: 8px; white-space: nowrap;
+        }
+
+        .nav-logo .logo-icon {
+            width: 24px; height: 24px; background: var(--pendo-pink); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+
+        .nav-tag {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--pendo-pink);
+            background: var(--pendo-pink-soft); padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        /* ============================================================
+           LAYOUT
+           ============================================================ */
+        .page { padding: 96px 40px 60px; max-width: 960px; margin: 0 auto; }
+
+        .section-header { margin-bottom: 40px; text-align: center; }
+
+        .section-label {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            letter-spacing: 0.15em; text-transform: uppercase;
+            color: var(--pendo-pink); margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 700;
+            color: var(--text-primary); line-height: 1.2; margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            font-size: 16px; color: var(--text-secondary); max-width: 560px; margin: 0 auto;
+        }
+
+        .gradient-line {
+            width: 80px; height: 4px;
+            background: linear-gradient(90deg, var(--pendo-pink), var(--accent-blue));
+            border-radius: 2px; margin: 16px auto;
+        }
+
+        /* ============================================================
+           INPUT CARD
+           ============================================================ */
+        .input-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .input-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+
+        .input-label {
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+
+        .input-hint {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 4px;
+        }
+
+        .input-wrapper {
+            position: relative; display: flex; align-items: center;
+        }
+
+        .input-prefix, .input-suffix {
+            position: absolute; font-family: 'Sora', sans-serif;
+            font-size: 20px; font-weight: 600; color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .input-prefix { left: 16px; }
+        .input-suffix { right: 16px; }
+
+        .calc-input {
+            width: 100%;
+            font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 700;
+            color: var(--text-primary);
+            background: var(--bg-card-elevated);
+            border: 2px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            padding: 16px 48px 16px 36px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .calc-input.has-suffix { padding-right: 48px; }
+        .calc-input.has-prefix { padding-left: 36px; }
+
+        .calc-input:focus {
+            border-color: var(--pendo-pink);
+            box-shadow: 0 0 0 4px var(--pendo-pink-soft);
+        }
+
+        .calc-input::placeholder {
+            color: var(--text-muted); font-weight: 400; font-size: 18px;
+        }
+
+        /* Remove number input spinners */
+        .calc-input::-webkit-outer-spin-button,
+        .calc-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .calc-input[type=number] { -moz-appearance: textfield; }
+
+        .calc-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 16px 32px;
+            font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 600;
+            color: #fff; background: var(--pendo-pink);
+            border: none; border-radius: var(--radius-sm); cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calc-btn:hover {
+            background: #e6366f;
+            box-shadow: 0 8px 32px var(--pendo-pink-glow);
+            transform: translateY(-1px);
+        }
+
+        .calc-btn:active { transform: translateY(0); }
+
+        .calc-btn i { font-size: 14px; }
+
+        /* ============================================================
+           RESULTS — hidden by default
+           ============================================================ */
+        .results { display: none; animation: fadeUp 0.5s ease both; }
+        .results.visible { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Impact hero */
+        .impact-hero {
+            background: linear-gradient(135deg, rgba(255, 64, 129, 0.08), rgba(59, 130, 246, 0.06));
+            border: 1px solid var(--pendo-pink-soft);
+            border-radius: var(--radius); padding: 48px;
+            text-align: center; margin-bottom: 32px;
+            position: relative; overflow: hidden;
+        }
+
+        .impact-hero::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 50% 50%, var(--pendo-pink-glow), transparent 60%);
+            opacity: 0.15;
+        }
+
+        .impact-hero-label {
+            font-size: 13px; font-weight: 600; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--pendo-pink); margin-bottom: 12px;
+            position: relative;
+        }
+
+        .impact-hero-value {
+            font-family: 'Sora', sans-serif; font-size: 64px; font-weight: 700;
+            color: var(--accent-green); line-height: 1; margin-bottom: 12px;
+            position: relative;
+        }
+
+        .impact-hero-note {
+            font-size: 16px; color: var(--text-secondary); position: relative;
+        }
+
+        /* KPI row */
+        .kpi-row {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: var(--gap); margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 24px;
+        }
+
+        .kpi-label {
+            font-size: 12px; font-weight: 600; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+        }
+
+        .kpi-value {
+            font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 700;
+            color: var(--text-primary); margin-bottom: 4px;
+        }
+
+        .kpi-value.pink { color: var(--pendo-pink); }
+        .kpi-value.green { color: var(--accent-green); }
+        .kpi-value.amber { color: var(--accent-amber); }
+        .kpi-value.red { color: var(--accent-red); }
+        .kpi-value.blue { color: var(--accent-blue); }
+        .kpi-value.purple { color: var(--accent-purple); }
+
+        .kpi-note { font-size: 13px; color: var(--text-muted); }
+
+        /* Waterfall breakdown */
+        .waterfall-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 32px; margin-bottom: 32px;
+        }
+
+        .waterfall-card h3 {
+            font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600;
+            color: var(--text-primary); margin-bottom: 24px;
+        }
+
+        .waterfall-row {
+            display: flex; align-items: center; padding: 14px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .waterfall-row:last-child { border-bottom: none; }
+
+        .waterfall-row.total {
+            border-top: 2px solid var(--border-card);
+            border-bottom: none; margin-top: 8px; padding-top: 20px;
+        }
+
+        .waterfall-label {
+            flex: 1; font-size: 14px; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .waterfall-label i { font-size: 14px; width: 20px; text-align: center; }
+
+        .waterfall-amount {
+            font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700;
+            color: var(--text-primary); min-width: 160px; text-align: right;
+        }
+
+        .waterfall-amount.green { color: var(--accent-green); }
+        .waterfall-amount.red { color: var(--accent-red); }
+        .waterfall-amount.pink { color: var(--pendo-pink); }
+
+        .waterfall-row.total .waterfall-label {
+            font-family: 'Sora', sans-serif; font-weight: 700;
+            color: var(--text-primary); font-size: 15px;
+        }
+
+        /* Insight callout */
+        .callout {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.06), rgba(59, 130, 246, 0.04));
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: var(--radius); padding: 24px 28px;
+            display: flex; align-items: flex-start; gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .callout i {
+            color: var(--accent-green); font-size: 18px; margin-top: 2px; flex-shrink: 0;
+        }
+
+        .callout-text { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+        .callout-text strong { color: var(--text-primary); }
+
+        /* Scenario cards */
+        .scenario-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap);
+            margin-bottom: 32px;
+        }
+
+        .scenario-card {
+            background: var(--bg-card); border: 1px solid var(--border-card);
+            border-radius: var(--radius); padding: 28px;
+        }
+
+        .scenario-card h4 {
+            font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.06em; margin-bottom: 12px;
+        }
+
+        .scenario-value {
+            font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .scenario-note { font-size: 13px; color: var(--text-muted); }
+
+        /* Footer */
+        .footer-note {
+            text-align: center; font-size: 13px; color: var(--text-muted);
+            padding: 20px 0 40px;
+        }
+
+        .footer-note a { color: var(--pendo-pink); text-decoration: none; }
+        .footer-note a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            .page { padding: 80px 20px 40px; }
+            .input-grid { grid-template-columns: 1fr; }
+            .kpi-row { grid-template-columns: 1fr; }
+            .scenario-grid { grid-template-columns: 1fr; }
+            .impact-hero-value { font-size: 44px; }
+            .section-title { font-size: 28px; }
+            .input-card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav class="nav">
+    <div class="nav-logo">
+        <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+        Pendo Predict
+    </div>
+    <div class="nav-tag">ROI Calculator</div>
+</nav>
+
+<!-- ============================================================
+     PAGE
+     ============================================================ -->
+<div class="page">
+
+    <!-- Header -->
+    <div class="section-header">
+        <div class="section-label">Business Impact</div>
+        <h1 class="section-title">Predict ROI Calculator</h1>
+        <div class="gradient-line"></div>
+        <p class="section-subtitle">
+            See how reducing churn by just 1 percentage point translates into retained revenue for your business.
+        </p>
+    </div>
+
+    <!-- Input card -->
+    <div class="input-card">
+        <div class="input-grid">
+            <div class="input-group">
+                <label class="input-label" for="churn-rate">Current Churn Rate</label>
+                <p class="input-hint">Annual gross logo or dollar churn rate</p>
+                <div class="input-wrapper">
+                    <input type="number" class="calc-input has-suffix" id="churn-rate"
+                           placeholder="e.g. 12" min="0" max="100" step="0.1">
+                    <span class="input-suffix">%</span>
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label" for="upcoming-arr">Upcoming Renewal ARR</label>
+                <p class="input-hint">Total $ up for renewal in the next 12 months</p>
+                <div class="input-wrapper">
+                    <span class="input-prefix">$</span>
+                    <input type="number" class="calc-input has-prefix" id="upcoming-arr"
+                           placeholder="e.g. 50000000" min="0" step="1000">
+                </div>
+            </div>
+        </div>
+        <button class="calc-btn" id="calc-btn" onclick="calculate()">
+            <i class="fas fa-bolt"></i>
+            Calculate Predict Impact
+        </button>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+        <!-- Hero impact -->
+        <div class="impact-hero">
+            <div class="impact-hero-label">Predict Saves You</div>
+            <div class="impact-hero-value" id="hero-saved">$0</div>
+            <div class="impact-hero-note">in retained annual recurring revenue with a <strong>1 ppt churn reduction</strong></div>
+        </div>
+
+        <!-- KPI row -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-label">Current Churn Rate</div>
+                <div class="kpi-value red" id="kpi-current-rate">—</div>
+                <div class="kpi-note">Annual rate today</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">With Predict</div>
+                <div class="kpi-value green" id="kpi-new-rate">—</div>
+                <div class="kpi-note">After 1 ppt reduction</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Upcoming Renewals</div>
+                <div class="kpi-value blue" id="kpi-upcoming">—</div>
+                <div class="kpi-note">Next 12 months</div>
+            </div>
+        </div>
+
+        <!-- Waterfall -->
+        <div class="waterfall-card">
+            <h3><i class="fas fa-layer-group" style="color: var(--pendo-pink); margin-right: 8px;"></i>Revenue Impact Breakdown</h3>
+            <div class="waterfall-row">
+                <div class="waterfall-label">
+                    <i class="fas fa-dollar-sign" style="color: var(--accent-blue);"></i>
+                    Upcoming renewal ARR
+                </div>
+                <div class="waterfall-amount" id="wf-upcoming">—</div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">
+                    <i class="fas fa-arrow-trend-down" style="color: var(--accent-red);"></i>
+                    At-risk ARR (current churn rate)
+                </div>
+                <div class="waterfall-amount red" id="wf-at-risk">—</div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">
+                    <i class="fas fa-arrow-trend-down" style="color: var(--accent-amber);"></i>
+                    At-risk ARR (with Predict)
+                </div>
+                <div class="waterfall-amount" id="wf-at-risk-new" style="color: var(--accent-amber);">—</div>
+            </div>
+            <div class="waterfall-row total">
+                <div class="waterfall-label">
+                    <i class="fas fa-shield-halved" style="color: var(--accent-green);"></i>
+                    Revenue saved by Predict
+                </div>
+                <div class="waterfall-amount green" id="wf-saved">—</div>
+            </div>
+        </div>
+
+        <!-- Insight callout -->
+        <div class="callout">
+            <i class="fas fa-lightbulb"></i>
+            <div class="callout-text" id="callout-text">
+                Loading insight...
+            </div>
+        </div>
+
+        <!-- Scenario cards -->
+        <div class="scenario-grid">
+            <div class="scenario-card">
+                <h4>Conservative (0.5 ppt)</h4>
+                <div class="scenario-value amber" id="scenario-low">—</div>
+                <div class="scenario-note">Half a percentage point improvement</div>
+            </div>
+            <div class="scenario-card">
+                <h4>Aggressive (2 ppt)</h4>
+                <div class="scenario-value purple" id="scenario-high">—</div>
+                <div class="scenario-note">Two percentage point improvement</div>
+            </div>
+        </div>
+
+        <!-- Recalculate nudge -->
+        <div style="text-align: center; margin-bottom: 24px;">
+            <button class="calc-btn" onclick="scrollToTop()" style="width: auto; padding: 12px 32px; font-size: 14px; background: var(--bg-card-elevated); border: 1px solid var(--border-card);">
+                <i class="fas fa-pen"></i>
+                Adjust Inputs
+            </button>
+        </div>
+
+    </div><!-- /results -->
+
+    <!-- Footer -->
+    <div class="footer-note">
+        Pendo Predict ROI Calculator &middot; Built by Pendo's Customer Engineering Team
+    </div>
+
+</div><!-- /page -->
+
+
+<!-- ============================================================
+     LOGIC
+     ============================================================ -->
+<script>
+    // Format currency
+    function fmtCurrency(n) {
+        if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
+        if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+        return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    // Full currency for waterfall
+    function fmtFull(n) {
+        return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+
+    function calculate() {
+        // Read inputs
+        var churnRate = parseFloat(document.getElementById('churn-rate').value);
+        var upcomingArr = parseFloat(document.getElementById('upcoming-arr').value);
+
+        // Validate
+        if (isNaN(churnRate) || isNaN(upcomingArr) || churnRate <= 0 || upcomingArr <= 0) {
+            alert('Please enter a valid churn rate (%) and upcoming renewal amount ($).');
+            return;
+        }
+
+        if (churnRate > 100) {
+            alert('Churn rate cannot exceed 100%.');
+            return;
+        }
+
+        // Calculate
+        var currentChurnDollars = upcomingArr * (churnRate / 100);
+        var newRate = Math.max(churnRate - 1, 0);
+        var newChurnDollars = upcomingArr * (newRate / 100);
+        var saved = currentChurnDollars - newChurnDollars;
+
+        // Scenarios
+        var savedLow = upcomingArr * (0.5 / 100);   // 0.5 ppt
+        var savedHigh = upcomingArr * (Math.min(2, churnRate) / 100); // 2 ppt (capped at current rate)
+
+        // Update hero
+        document.getElementById('hero-saved').textContent = fmtCurrency(saved);
+
+        // Update KPIs
+        document.getElementById('kpi-current-rate').textContent = churnRate.toFixed(1) + '%';
+        document.getElementById('kpi-new-rate').textContent = newRate.toFixed(1) + '%';
+        document.getElementById('kpi-upcoming').textContent = fmtCurrency(upcomingArr);
+
+        // Update waterfall
+        document.getElementById('wf-upcoming').textContent = fmtFull(upcomingArr);
+        document.getElementById('wf-at-risk').textContent = '-' + fmtFull(currentChurnDollars);
+        document.getElementById('wf-at-risk-new').textContent = '-' + fmtFull(newChurnDollars);
+        document.getElementById('wf-saved').textContent = '+' + fmtFull(saved);
+
+        // Update scenarios
+        document.getElementById('scenario-low').textContent = fmtCurrency(savedLow);
+        document.getElementById('scenario-high').textContent = fmtCurrency(savedHigh);
+
+        // Update callout
+        var multiplier = Math.round(saved / (upcomingArr * 0.001)); // rough Predict cost proxy
+        document.getElementById('callout-text').innerHTML =
+            'A <strong>1 percentage point</strong> reduction in churn means ' +
+            '<strong>' + fmtCurrency(saved) + '</strong> in ARR that would have been lost is now retained. ' +
+            'With <strong>' + fmtFull(upcomingArr) + '</strong> in upcoming renewals, ' +
+            'even a conservative <strong>0.5 ppt</strong> improvement saves <strong>' + fmtCurrency(savedLow) + '</strong> annually. ' +
+            'Predict pays for itself many times over by giving your CS team early, actionable churn signals.';
+
+        // Show results
+        var resultsEl = document.getElementById('results');
+        resultsEl.classList.remove('visible');
+        // Force reflow so animation replays
+        void resultsEl.offsetWidth;
+        resultsEl.classList.add('visible');
+
+        // Smooth scroll to results
+        setTimeout(function() {
+            resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+
+    function scrollToTop() {
+        document.getElementById('churn-rate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('churn-rate').focus();
+    }
+
+    // Allow Enter key to trigger calculate
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            calculate();
+        }
+    });
+</script>
+
+</body>
+</html>
